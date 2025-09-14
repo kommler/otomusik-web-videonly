@@ -163,8 +163,10 @@ export function DataTable<T extends Record<string, any>>({
   }
 
   return (
-    <div className={cn("overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg", className)}>
-      <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+    <div className="w-full">
+      <div className={cn("overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg", className)}>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
         <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
             {allColumns.map((column) => (
@@ -221,6 +223,8 @@ export function DataTable<T extends Record<string, any>>({
           )}
         </tbody>
       </table>
+        </div>
+      </div>
     </div>
   );
 }
