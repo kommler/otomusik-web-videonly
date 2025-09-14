@@ -14,3 +14,4 @@ export { Modal, ModalContent, ModalFooter } from './modal';
 export { LoadingSpinner, LoadingOverlay } from './loading';
 export { Notification, NotificationContainer } from './notification';
 export { SearchInput } from './search-input';
+export { DataTable } from './data-table';
