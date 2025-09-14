@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { usePathname } from 'next/navigation';
 import {
   HomeIcon,
   PlayIcon,
@@ -31,13 +31,13 @@ interface SidebarProps {
 }
 
 export const Layout: React.FC<SidebarProps> = ({ children }) => {
-  const router = useRouter();
+  const pathname = usePathname();
   const { collapsed, toggle, setCollapsed } = useSidebar();
 
   // Update navigation current state based on current route
   const navigationWithCurrent = navigation.map((item) => ({
     ...item,
-    current: router.pathname === item.href,
+    current: pathname === item.href,
   }));
 
   return (

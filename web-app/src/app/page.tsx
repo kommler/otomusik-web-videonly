@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { PlayIcon, TvIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle, LoadingSpinner, Button } from '@/components/ui';
@@ -15,6 +16,7 @@ interface DashboardStats {
 }
 
 export default function Dashboard() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     totalVideos: 0,
     totalChannels: 0,
@@ -167,10 +169,10 @@ export default function Dashboard() {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full" onClick={() => window.location.href = '/videos'}>
+              <Button className="w-full" onClick={() => router.push('/videos')}>
                 Manage Videos
               </Button>
-              <Button className="w-full" onClick={() => window.location.href = '/channels'}>
+              <Button className="w-full" onClick={() => router.push('/channels')}>
                 Manage Channels
               </Button>
             </CardContent>
