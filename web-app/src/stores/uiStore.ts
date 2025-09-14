@@ -165,12 +165,26 @@ export const useUIStore = create<UIState>()(
   )
 );
 
+// Stable selector functions to prevent infinite loops
+const selectSidebarCollapsed = (state: UIState) => state.sidebarCollapsed;
+const selectToggleSidebar = (state: UIState) => state.toggleSidebar;
+const selectSetSidebarCollapsed = (state: UIState) => state.setSidebarCollapsed;
+
 // Convenience hooks for specific UI state
 export const useTheme = () => useUIStore((state) => state.theme);
 export const useNotifications = () => useUIStore((state) => state.notifications);
 export const useModals = () => useUIStore((state) => state.modals);
-export const useSidebar = () => useUIStore((state) => ({ 
-  collapsed: state.sidebarCollapsed,
-  toggle: state.toggleSidebar,
-  setCollapsed: state.setSidebarCollapsed,
-}));
+
+// Use separate selectors to avoid object creation on every render
+export const useSidebarCollapsed = () => useUIStore(selectSidebarCollapsed);
+export const useSidebarToggle = () => useUIStore(selectToggleSidebar);
+export const useSidebarSetCollapsed = () => useUIStore(selectSetSidebarCollapsed);
+
+// Combined sidebar hook with stable selectors
+export const useSidebar = () => {
+  const collapsed = useUIStore(selectSidebarCollapsed);
+  const toggle = useUIStore(selectToggleSidebar);
+  const setCollapsed = useUIStore(selectSetSidebarCollapsed);
+  
+  return { collapsed, toggle, setCollapsed };
+};
