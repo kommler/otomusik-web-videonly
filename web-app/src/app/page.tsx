@@ -57,10 +57,22 @@ export default function Dashboard() {
         loading: false,
       }));
 
+      // Provide specific error messages for different types of failures
+      let errorMessage = 'Could not connect to the API. Please ensure the backend is running.';
+      let errorTitle = 'API Connection Failed';
+      
+      if (error instanceof Error && error.message.includes('CORS')) {
+        errorTitle = 'CORS Configuration Error';
+        errorMessage = 'The API server needs CORS configuration. Check CORS_FIX_GUIDE.md for setup instructions.';
+      } else if (error instanceof Error && error.message.includes('Failed to fetch')) {
+        errorTitle = 'Network/CORS Error';
+        errorMessage = 'Unable to reach the API server. This is likely a CORS issue. Please configure CORS in your FastAPI backend.';
+      }
+
       addNotification({
         type: 'error',
-        title: 'API Connection Failed',
-        message: 'Could not connect to the API. Please ensure the backend is running.',
+        title: errorTitle,
+        message: errorMessage,
       });
     }
   };

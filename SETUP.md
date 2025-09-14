@@ -1,5 +1,7 @@
 # OtoMusik Web App - Setup and Testing Guide
 
+> 📖 **Additional Guides**: See [HYDRATION_GUIDE.md](./HYDRATION_GUIDE.md) for hydration troubleshooting
+
 ## Database Configuration
 
 ### Backend (FastAPI) Configuration
@@ -24,7 +26,7 @@ The database connection is configured in your FastAPI backend. You should have:
 The frontend connects to the API via the URL configured in `.env.local`:
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8001
 ```
 
 ## Testing the Application
@@ -33,14 +35,14 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 First, ensure your FastAPI backend is running:
 ```bash
 # In your FastAPI backend directory
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn main:app --reload --host 0.0.0.0 --port 8001
 ```
 
 ### 2. Test API Connection
 You can test if the API is accessible:
 ```bash
-curl http://localhost:8000/api/video/videos/
-curl http://localhost:8000/api/video/channels/
+curl http://localhost:8001/api/video/videos/
+curl http://localhost:8001/api/video/channels/
 ```
 
 ### 3. Start the Frontend
@@ -53,7 +55,7 @@ npm run dev
 ### 4. Access the Application
 Open your browser to:
 - Frontend: http://localhost:3000
-- API Docs: http://localhost:8000/docs
+- API Docs: http://localhost:8001/docs
 
 ## Database Schema
 Based on your OpenAPI spec, you have these main tables:
@@ -62,8 +64,12 @@ Based on your OpenAPI spec, you have these main tables:
 
 ## Common Issues and Solutions
 
-### 1. CORS Issues
-If you get CORS errors, ensure your FastAPI backend has CORS configured:
+### 1. CORS Issues (Failed to fetch)
+If you get CORS errors or "Failed to fetch" errors, this means your FastAPI backend needs CORS configuration. 
+
+**📖 See [CORS_FIX_GUIDE.md](./CORS_FIX_GUIDE.md) for detailed step-by-step instructions.**
+
+Quick fix - ensure your FastAPI backend has CORS configured **before any routes**:
 ```python
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -75,6 +81,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 ```
+
+### 2. Hydration Errors
+📖 See [HYDRATION_GUIDE.md](./HYDRATION_GUIDE.md) for hydration troubleshooting
 
 ### 2. Database Connection
 - Ensure your database server is running
