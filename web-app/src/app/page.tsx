@@ -36,9 +36,22 @@ export default function Dashboard() {
         api.channels.count(),
       ]);
 
+      // Handle status-based count responses
+      const totalVideos = videosResult.count !== undefined 
+        ? videosResult.count 
+        : Object.entries(videosResult)
+            .filter(([key]) => key !== 'count')
+            .reduce((sum, [, count]) => sum + (typeof count === 'number' ? count : 0), 0);
+        
+      const totalChannels = channelsResult.count !== undefined 
+        ? channelsResult.count 
+        : Object.entries(channelsResult)
+            .filter(([key]) => key !== 'count')
+            .reduce((sum, [, count]) => sum + (typeof count === 'number' ? count : 0), 0);
+
       setStats({
-        totalVideos: videosResult.count || 0,
-        totalChannels: channelsResult.count || 0,
+        totalVideos,
+        totalChannels,
         apiConnected: true,
         loading: false,
       });

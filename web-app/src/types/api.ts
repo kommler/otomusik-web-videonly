@@ -85,7 +85,8 @@ export interface ApiResponse<T> {
 }
 
 export interface CountResponse {
-  count: number;
+  count?: number; // Simple count format
+  [key: string]: number | undefined; // Status-based count format (e.g., PENDING: 30, DOWNLOADED: 2282)
 }
 
 // Query parameters for list endpoints
