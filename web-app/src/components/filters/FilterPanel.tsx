@@ -39,19 +39,20 @@ type FilterPanelProps = VideoFiltersProps | ChannelFiltersProps;
 
 // Status options for both videos and channels
 const videoStatusOptions = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'downloading', label: 'Downloading' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'failed', label: 'Failed' },
-  { value: 'extracting', label: 'Extracting' },
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'DOWNLOADING', label: 'Downloading' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'FAILED', label: 'Failed' },
+  { value: 'ERROR', label: 'Error' },
+  { value: 'EXTRACTING', label: 'Extracting' },
 ];
 
 const channelStatusOptions = [
-  { value: 'active', label: 'Active' },
-  { value: 'inactive', label: 'Inactive' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'scraping', label: 'Scraping' },
-  { value: 'failed', label: 'Failed' },
+  { value: 'ACTIVE', label: 'Active' },
+  { value: 'INACTIVE', label: 'Inactive' },
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'SCRAPING', label: 'Scraping' },
+  { value: 'FAILED', label: 'Failed' },
 ];
 
 export const FilterPanel: React.FC<FilterPanelProps> = (props) => {

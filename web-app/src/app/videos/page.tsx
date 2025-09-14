@@ -55,6 +55,11 @@ export default function VideosPage() {
     fetchChannels();
   }, [fetchVideos, fetchChannels]);
 
+  // Re-fetch videos when filters change
+  useEffect(() => {
+    fetchVideos(filters);
+  }, [filters, fetchVideos]);
+
   const handleCreateVideo = async () => {
     setFormLoading(true);
     try {

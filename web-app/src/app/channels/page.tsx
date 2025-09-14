@@ -50,6 +50,11 @@ export default function ChannelsPage() {
     fetchChannels();
   }, [fetchChannels]);
 
+  // Re-fetch channels when filters change
+  useEffect(() => {
+    fetchChannels();
+  }, [filters, fetchChannels]);
+
   const handleCreateChannel = async () => {
     setFormLoading(true);
     try {
