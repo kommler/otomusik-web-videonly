@@ -98,7 +98,10 @@ export default function ChannelsPage() {
 
     setFormLoading(true);
     try {
+      // Create complete channel data object with all required fields
       const channelData: ChannelSchema = {
+        ...editingChannel, // Start with existing channel data
+        // Override with form data
         name: formData.name,
         description: formData.description || null,
         url: formData.url,

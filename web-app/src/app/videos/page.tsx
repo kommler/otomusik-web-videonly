@@ -103,7 +103,10 @@ export default function VideosPage() {
 
     setFormLoading(true);
     try {
+      // Create complete video data object with all required fields
       const videoData: VideoSchema = {
+        ...editingVideo, // Start with existing video data
+        // Override with form data
         oto_channel_id: formData.oto_channel_id,
         title: formData.title,
         description: formData.description || null,
