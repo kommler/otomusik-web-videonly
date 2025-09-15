@@ -26,9 +26,11 @@ export default function VideosPage() {
     filters, 
     currentPage,
     pageSize,
+    statusCounts,
     fetchVideos, 
     setFilters, 
     setCurrentPage,
+    fetchStatusCounts,
     updateVideo,
     deleteVideo,
     createVideo
@@ -53,7 +55,8 @@ export default function VideosPage() {
   useEffect(() => {
     fetchVideos();
     fetchChannels();
-  }, [fetchVideos, fetchChannels]);
+    fetchStatusCounts();
+  }, [fetchVideos, fetchChannels, fetchStatusCounts]);
 
   // Re-fetch videos when filters change
   useEffect(() => {
@@ -235,6 +238,7 @@ export default function VideosPage() {
               key !== 'sort_order'
             ).length}
             type="video"
+            statusCounts={statusCounts}
           />
         </div>
 

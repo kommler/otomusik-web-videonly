@@ -8,6 +8,7 @@ interface VideoState {
   videos: VideoSchema[];
   selectedVideo: VideoSchema | null;
   totalCount: number;
+  statusCounts: Record<string, number>;
   
   // Loading states
   loading: boolean;
@@ -30,10 +31,12 @@ interface VideoState {
   setError: (error: string | null) => void;
   setFilters: (filters: VideoQueryParams) => void;
   setCurrentPage: (page: number) => void;
+  setStatusCounts: (counts: Record<string, number>) => void;
   
   // API Actions
   fetchVideos: (params?: VideoQueryParams) => Promise<void>;
   fetchVideoCount: (params?: VideoQueryParams) => Promise<void>;
+  fetchStatusCounts: () => Promise<void>;
   fetchVideo: (id: number) => Promise<VideoSchema | null>;
   createVideo: (video: VideoSchema) => Promise<VideoSchema | null>;
   updateVideo: (id: number, video: VideoSchema) => Promise<VideoSchema | null>;
@@ -60,6 +63,7 @@ export const useVideoStore = create<VideoState>()(
       videos: [],
       selectedVideo: null,
       totalCount: 0,
+      statusCounts: {},
       loading: false,
       creating: false,
       updating: false,
@@ -76,6 +80,7 @@ export const useVideoStore = create<VideoState>()(
       setError: (error) => set({ error }),
       setFilters: (filters) => set({ filters }),
       setCurrentPage: (page) => set({ currentPage: page }),
+      setStatusCounts: (counts) => set({ statusCounts: counts }),
       
       // API Actions
       fetchVideos: async (params) => {
@@ -105,6 +110,30 @@ export const useVideoStore = create<VideoState>()(
             : error instanceof Error 
             ? error.message
             : 'Failed to fetch video count';
+          set({ error: errorMessage });
+        }
+      },
+      
+      fetchStatusCounts: async () => {
+        try {
+          // Récupère les comptages sans filtres pour avoir tous les statuts
+          const response = await videoApi.count({});
+          
+          // Convertit la réponse en objet de comptages par statut
+          const statusCounts: Record<string, number> = {};
+          Object.entries(response).forEach(([key, value]) => {
+            if (key !== 'count' && typeof value === 'number') {
+              statusCounts[key] = value;
+            }
+          });
+          
+          set({ statusCounts });
+        } catch (error) {
+          const errorMessage = error instanceof APIError 
+            ? error.message 
+            : error instanceof Error 
+            ? error.message
+            : 'Failed to fetch status counts';
           set({ error: errorMessage });
         }
       },

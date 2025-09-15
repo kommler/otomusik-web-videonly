@@ -25,8 +25,10 @@ export default function ChannelsPage() {
     channels, 
     loading, 
     filters, 
+    statusCounts,
     fetchChannels, 
     setFilters,
+    fetchStatusCounts,
     updateChannel,
     deleteChannel,
     createChannel
@@ -50,7 +52,8 @@ export default function ChannelsPage() {
 
   useEffect(() => {
     fetchChannels();
-  }, [fetchChannels]);
+    fetchStatusCounts();
+  }, [fetchChannels, fetchStatusCounts]);
 
   // Re-fetch channels when filters change
   useEffect(() => {
@@ -237,6 +240,7 @@ export default function ChannelsPage() {
               key !== 'sort_order'
             ).length}
             type="channel"
+            statusCounts={statusCounts}
           />
         </div>
 

@@ -8,6 +8,7 @@ interface ChannelState {
   channels: ChannelSchema[];
   selectedChannel: ChannelSchema | null;
   totalCount: number;
+  statusCounts: Record<string, number>;
   
   // Loading states
   loading: boolean;
@@ -30,10 +31,12 @@ interface ChannelState {
   setError: (error: string | null) => void;
   setFilters: (filters: ChannelQueryParams) => void;
   setCurrentPage: (page: number) => void;
+  setStatusCounts: (counts: Record<string, number>) => void;
   
   // API Actions
   fetchChannels: (params?: ChannelQueryParams) => Promise<void>;
   fetchChannelCount: (params?: ChannelQueryParams) => Promise<void>;
+  fetchStatusCounts: () => Promise<void>;
   fetchChannel: (id: number) => Promise<ChannelSchema | null>;
   createChannel: (channel: ChannelSchema) => Promise<ChannelSchema | null>;
   updateChannel: (id: number, channel: ChannelSchema) => Promise<ChannelSchema | null>;
@@ -60,6 +63,7 @@ export const useChannelStore = create<ChannelState>()(
       channels: [],
       selectedChannel: null,
       totalCount: 0,
+      statusCounts: {},
       loading: false,
       creating: false,
       updating: false,
@@ -76,6 +80,7 @@ export const useChannelStore = create<ChannelState>()(
       setError: (error) => set({ error }),
       setFilters: (filters) => set({ filters }),
       setCurrentPage: (page) => set({ currentPage: page }),
+      setStatusCounts: (counts) => set({ statusCounts: counts }),
       
       // API Actions
       fetchChannels: async (params) => {
@@ -105,6 +110,30 @@ export const useChannelStore = create<ChannelState>()(
             : error instanceof Error 
             ? error.message
             : 'Failed to fetch channel count';
+          set({ error: errorMessage });
+        }
+      },
+      
+      fetchStatusCounts: async () => {
+        try {
+          // Récupère les comptages sans filtres pour avoir tous les statuts
+          const response = await channelApi.count({});
+          
+          // Convertit la réponse en objet de comptages par statut
+          const statusCounts: Record<string, number> = {};
+          Object.entries(response).forEach(([key, value]) => {
+            if (key !== 'count' && typeof value === 'number') {
+              statusCounts[key] = value;
+            }
+          });
+          
+          set({ statusCounts });
+        } catch (error) {
+          const errorMessage = error instanceof APIError 
+            ? error.message 
+            : error instanceof Error 
+            ? error.message
+            : 'Failed to fetch status counts';
           set({ error: errorMessage });
         }
       },

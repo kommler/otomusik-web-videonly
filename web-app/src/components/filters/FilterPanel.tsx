@@ -21,6 +21,7 @@ interface BaseFilterProps {
   onFiltersChange: (filters: any) => void;
   onClearFilters: () => void;
   activeFiltersCount: number;
+  statusCounts?: Record<string, number>;
 }
 
 interface VideoFiltersProps extends BaseFilterProps {
@@ -136,20 +137,35 @@ export const FilterPanel: React.FC<FilterPanelProps> = (props) => {
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Status:
           </span>
-          {statusOptions.map((status) => (
-            <button
-              key={status.value}
-              onClick={() => handleStatusToggle(status.value)}
-              className={cn(
-                "px-3 py-1 rounded-full text-xs font-medium transition-colors",
-                (props.filters.status || []).includes(status.value)
-                  ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-              )}
-            >
-              {status.label}
-            </button>
-          ))}
+          {statusOptions.map((status) => {
+            const count = props.statusCounts?.[status.value] || 0;
+            const isActive = (props.filters.status || []).includes(status.value);
+            
+            return (
+              <button
+                key={status.value}
+                onClick={() => handleStatusToggle(status.value)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center space-x-1",
+                  isActive
+                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                )}
+              >
+                <span>{status.label}</span>
+                {count > 0 && (
+                  <span className={cn(
+                    "ml-1 px-1.5 py-0.5 rounded-full text-xs font-semibold",
+                    isActive 
+                      ? "bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100"
+                      : "bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-200"
+                  )}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
