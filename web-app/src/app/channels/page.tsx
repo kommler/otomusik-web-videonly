@@ -201,7 +201,7 @@ export default function ChannelsPage() {
 
   return (
     <Layout>
-      <div className="p-6">
+      <div className="p-6 max-w-full">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>

@@ -127,7 +127,7 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
       </div>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col min-h-0">
         {/* Top bar for mobile */}
         <div className="flex h-16 flex-shrink-0 items-center justify-between bg-white px-4 shadow-sm dark:bg-gray-800 lg:hidden">
           <button
@@ -148,10 +148,8 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="min-h-full">
-            {children}
-          </div>
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+          {children}
         </main>
       </div>
     </div>
