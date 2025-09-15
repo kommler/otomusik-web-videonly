@@ -41,7 +41,7 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
   }));
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile sidebar overlay */}
       {!collapsed && (
         <div 
@@ -127,7 +127,7 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
       </div>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col min-h-0">
+      <div className="flex flex-1 flex-col">
         {/* Top bar for mobile */}
         <div className="flex h-16 flex-shrink-0 items-center justify-between bg-white px-4 shadow-sm dark:bg-gray-800 lg:hidden">
           <button
@@ -148,7 +148,7 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1 bg-white dark:bg-gray-800">
           {children}
         </main>
       </div>
