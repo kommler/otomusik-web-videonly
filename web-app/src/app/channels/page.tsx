@@ -15,6 +15,7 @@ interface ChannelFormData {
   description: string;
   url: string;
   uploader: string;
+  resolution: string;
   max_videos: number;
   refresh_interval_days: number;
 }
@@ -41,6 +42,7 @@ export default function ChannelsPage() {
     description: '',
     url: '',
     uploader: '',
+    resolution: '',
     max_videos: 100,
     refresh_interval_days: 7,
   });
@@ -63,6 +65,7 @@ export default function ChannelsPage() {
         description: formData.description || null,
         url: formData.url,
         uploader: formData.uploader || null,
+        resolution: formData.resolution || null,
         max_videos: formData.max_videos || null,
         refresh_interval_days: formData.refresh_interval_days || null,
       };
@@ -76,6 +79,7 @@ export default function ChannelsPage() {
           description: '',
           url: '',
           uploader: '',
+          resolution: '',
           max_videos: 100,
           refresh_interval_days: 7,
         });
@@ -111,6 +115,7 @@ export default function ChannelsPage() {
         description: formData.description || null,
         url: formData.url,
         uploader: formData.uploader || null,
+        resolution: formData.resolution || null,
         max_videos: formData.max_videos || null,
         refresh_interval_days: formData.refresh_interval_days || null,
       };
@@ -166,6 +171,7 @@ export default function ChannelsPage() {
       description: '',
       url: '',
       uploader: '',
+      resolution: '',
       max_videos: 100,
       refresh_interval_days: 7,
     });
@@ -179,6 +185,7 @@ export default function ChannelsPage() {
       description: channel.description || '',
       url: channel.url || '',
       uploader: channel.uploader || '',
+      resolution: channel.resolution || '',
       max_videos: channel.max_videos || 100,
       refresh_interval_days: channel.refresh_interval_days || 7,
     });
@@ -267,6 +274,13 @@ export default function ChannelsPage() {
               onChange={(e) => handleFormChange('uploader', e.target.value)}
             />
 
+            <FormInput
+              label="Resolution"
+              value={formData.resolution}
+              onChange={(e) => handleFormChange('resolution', e.target.value)}
+              placeholder="e.g., 1080p, 720p, 4K"
+            />
+
             <FormTextarea
               label="Description"
               value={formData.description}
@@ -337,6 +351,13 @@ export default function ChannelsPage() {
               label="Uploader"
               value={formData.uploader}
               onChange={(e) => handleFormChange('uploader', e.target.value)}
+            />
+
+            <FormInput
+              label="Resolution"
+              value={formData.resolution}
+              onChange={(e) => handleFormChange('resolution', e.target.value)}
+              placeholder="e.g., 1080p, 720p, 4K"
             />
 
             <FormTextarea

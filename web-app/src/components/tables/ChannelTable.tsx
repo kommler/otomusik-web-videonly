@@ -112,6 +112,17 @@ export const ChannelTable: React.FC<ChannelTableProps> = ({
       ),
     },
     {
+      key: 'resolution',
+      title: 'Resolution',
+      sortable: true,
+      width: '120px',
+      render: (resolution: string | null) => (
+        <span className="text-sm text-gray-900 dark:text-white">
+          {resolution || '-'}
+        </span>
+      ),
+    },
+    {
       key: 'video_count',
       title: 'Videos',
       sortable: true,
