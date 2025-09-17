@@ -217,6 +217,15 @@ export default function VideosPage() {
     }));
   };
 
+  const handleSort = (key: string, direction: 'asc' | 'desc') => {
+    const newFilters = {
+      ...filters,
+      sort_by: key,
+      sort_order: direction,
+    };
+    setFilters(newFilters);
+  };
+
   return (
     <Layout>
       <div className="p-6">
@@ -267,6 +276,10 @@ export default function VideosPage() {
         ) : (
           <VideoTable
             videos={videos}
+            loading={loading}
+            onSort={handleSort}
+            sortKey={filters.sort_by}
+            sortDirection={filters.sort_order}
             onEdit={openEditModal}
             onDelete={handleDeleteVideo}
           />

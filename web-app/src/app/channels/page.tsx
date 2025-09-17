@@ -219,6 +219,15 @@ export default function ChannelsPage() {
     }));
   };
 
+  const handleSort = (key: string, direction: 'asc' | 'desc') => {
+    const newFilters = {
+      ...filters,
+      sort_by: key,
+      sort_order: direction,
+    };
+    setFilters(newFilters);
+  };
+
   return (
     <Layout>
       <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -269,6 +278,10 @@ export default function ChannelsPage() {
         ) : (
           <ChannelTable
             channels={channels}
+            loading={loading}
+            onSort={handleSort}
+            sortKey={filters.sort_by}
+            sortDirection={filters.sort_order}
             onEdit={openEditModal}
             onDelete={handleDeleteChannel}
           />

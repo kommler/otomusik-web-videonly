@@ -83,6 +83,17 @@ export const VideoTable: React.FC<VideoTableProps> = ({
 }) => {
   const columns = [
     {
+      key: 'id',
+      title: 'ID',
+      sortable: true,
+      width: '80px',
+      render: (id: number | null) => (
+        <span className="text-sm font-mono text-gray-700 dark:text-gray-300">
+          {id || '-'}
+        </span>
+      ),
+    },
+    {
       key: 'title',
       title: 'Title',
       sortable: true,
