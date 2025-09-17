@@ -281,12 +281,11 @@ export default function VideosPage() {
         >
           <div className="space-y-4">
             <FormSelect
-              label="Channel"
+              label="Channel (optional)"
               value={formData.oto_channel_id || ''}
               onChange={(e) => handleFormChange('oto_channel_id', e.target.value ? Number(e.target.value) : null)}
-              required
             >
-              <option value="">Select a channel</option>
+              <option value="">No channel</option>
               {channels.map((channel) => (
                 <option key={channel.id} value={channel.id || ''}>
                   {channel.name || channel.uploader || 'Unnamed Channel'}
@@ -345,7 +344,7 @@ export default function VideosPage() {
             </Button>
             <Button
               onClick={handleCreateVideo}
-              disabled={formLoading || !formData.oto_channel_id || !formData.title || !formData.url}
+              disabled={formLoading || !formData.title || !formData.url}
             >
               {formLoading ? <LoadingSpinner size="sm" /> : 'Create Video'}
             </Button>
@@ -361,12 +360,11 @@ export default function VideosPage() {
         >
           <div className="space-y-4">
             <FormSelect
-              label="Channel"
+              label="Channel (optional)"
               value={formData.oto_channel_id || ''}
               onChange={(e) => handleFormChange('oto_channel_id', e.target.value ? Number(e.target.value) : null)}
-              required
             >
-              <option value="">Select a channel</option>
+              <option value="">No channel</option>
               {channels.map((channel) => (
                 <option key={channel.id} value={channel.id || ''}>
                   {channel.name || channel.uploader || 'Unnamed Channel'}
@@ -438,7 +436,7 @@ export default function VideosPage() {
             </Button>
             <Button
               onClick={handleEditVideo}
-              disabled={formLoading || !formData.oto_channel_id || !formData.title || !formData.url}
+              disabled={formLoading || !formData.title || !formData.url}
             >
               {formLoading ? <LoadingSpinner size="sm" /> : 'Update Video'}
             </Button>
