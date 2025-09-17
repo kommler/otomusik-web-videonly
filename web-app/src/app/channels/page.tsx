@@ -16,9 +16,20 @@ interface ChannelFormData {
   url: string;
   uploader: string;
   resolution: string;
+  status: string;
   max_videos: number;
   refresh_interval_days: number;
 }
+
+// Status options for channels
+const channelStatusOptions = [
+  { value: '', label: 'Select status' },
+  { value: 'ACTIVE', label: 'Active' },
+  { value: 'INACTIVE', label: 'Inactive' },
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'ERROR', label: 'Error' },
+  { value: 'FAILED', label: 'Failed' },
+];
 
 export default function ChannelsPage() {
   const { 
@@ -45,6 +56,7 @@ export default function ChannelsPage() {
     url: '',
     uploader: '',
     resolution: '',
+    status: '',
     max_videos: 100,
     refresh_interval_days: 7,
   });
@@ -69,6 +81,7 @@ export default function ChannelsPage() {
         url: formData.url,
         uploader: formData.uploader || null,
         resolution: formData.resolution || null,
+        status: formData.status || null,
         max_videos: formData.max_videos || null,
         refresh_interval_days: formData.refresh_interval_days || null,
       };
@@ -83,6 +96,7 @@ export default function ChannelsPage() {
           url: '',
           uploader: '',
           resolution: '',
+          status: '',
           max_videos: 100,
           refresh_interval_days: 7,
         });
@@ -119,6 +133,7 @@ export default function ChannelsPage() {
         url: formData.url,
         uploader: formData.uploader || null,
         resolution: formData.resolution || null,
+        status: formData.status || null,
         max_videos: formData.max_videos || null,
         refresh_interval_days: formData.refresh_interval_days || null,
       };
@@ -175,6 +190,7 @@ export default function ChannelsPage() {
       url: '',
       uploader: '',
       resolution: '',
+      status: '',
       max_videos: 100,
       refresh_interval_days: 7,
     });
@@ -189,6 +205,7 @@ export default function ChannelsPage() {
       url: channel.url || '',
       uploader: channel.uploader || '',
       resolution: channel.resolution || '',
+      status: channel.status || '',
       max_videos: channel.max_videos || 100,
       refresh_interval_days: channel.refresh_interval_days || 7,
     });
@@ -363,6 +380,23 @@ export default function ChannelsPage() {
               onChange={(e) => handleFormChange('resolution', e.target.value)}
               placeholder="e.g., 1080p, 720p, 4K"
             />
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => handleFormChange('status', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                {channelStatusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <FormTextarea
               label="Description"

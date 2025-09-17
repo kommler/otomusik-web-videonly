@@ -17,7 +17,18 @@ interface VideoFormData {
   url: string;
   duration: number;
   view_count: number;
+  status: string;
 }
+
+// Available video status options
+const videoStatusOptions = [
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'DOWNLOADING', label: 'Downloading' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'FAILED', label: 'Failed' },
+  { value: 'ERROR', label: 'Error' },
+  { value: 'EXTRACTING', label: 'Extracting' },
+];
 
 export default function VideosPage() {
   const { 
@@ -49,6 +60,7 @@ export default function VideosPage() {
     url: '',
     duration: 0,
     view_count: 0,
+    status: '',
   });
   const [formLoading, setFormLoading] = useState(false);
 
@@ -73,6 +85,7 @@ export default function VideosPage() {
         url: formData.url,
         duration: formData.duration || null,
         view_count: formData.view_count || null,
+        status: formData.status || null,
       };
 
       const newVideo = await createVideo(videoData);
@@ -86,6 +99,7 @@ export default function VideosPage() {
           url: '',
           duration: 0,
           view_count: 0,
+          status: '',
         });
 
         addNotification({
@@ -121,6 +135,7 @@ export default function VideosPage() {
         url: formData.url,
         duration: formData.duration || null,
         view_count: formData.view_count || null,
+        status: formData.status || null,
       };
 
       const updatedVideo = await updateVideo(editingVideo.id, videoData);
@@ -176,6 +191,7 @@ export default function VideosPage() {
       url: '',
       duration: 0,
       view_count: 0,
+      status: '',
     });
     setShowCreateModal(true);
   };
@@ -189,6 +205,7 @@ export default function VideosPage() {
       url: video.url || '',
       duration: video.duration || video.duration_seconds || 0,
       view_count: video.view_count || 0,
+      status: video.status || '',
     });
     setShowEditModal(true);
   };
@@ -363,6 +380,19 @@ export default function VideosPage() {
               onChange={(e) => handleFormChange('title', e.target.value)}
               required
             />
+
+            <FormSelect
+              label="Status"
+              value={formData.status}
+              onChange={(e) => handleFormChange('status', e.target.value)}
+            >
+              <option value="">Select status</option>
+              {videoStatusOptions.map((status) => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
+            </FormSelect>
 
             <FormTextarea
               label="Description"
