@@ -70,10 +70,11 @@ export default function VideosPage() {
     fetchStatusCounts();
   }, [fetchVideos, fetchChannels, fetchStatusCounts]);
 
-  // Re-fetch videos when filters change
+  // Re-fetch videos and status counts when filters change
   useEffect(() => {
     fetchVideos(filters);
-  }, [filters, fetchVideos]);
+    fetchStatusCounts(filters);
+  }, [filters, fetchVideos, fetchStatusCounts]);
 
   const handleCreateVideo = async () => {
     setFormLoading(true);

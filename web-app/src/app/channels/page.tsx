@@ -67,10 +67,11 @@ export default function ChannelsPage() {
     fetchStatusCounts();
   }, [fetchChannels, fetchStatusCounts]);
 
-  // Re-fetch channels when filters change
+  // Re-fetch channels and status counts when filters change
   useEffect(() => {
     fetchChannels();
-  }, [filters, fetchChannels]);
+    fetchStatusCounts(filters);
+  }, [filters, fetchChannels, fetchStatusCounts]);
 
   const handleCreateChannel = async () => {
     setFormLoading(true);

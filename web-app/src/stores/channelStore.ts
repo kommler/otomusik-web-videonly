@@ -36,7 +36,7 @@ interface ChannelState {
   // API Actions
   fetchChannels: (params?: ChannelQueryParams) => Promise<void>;
   fetchChannelCount: (params?: ChannelQueryParams) => Promise<void>;
-  fetchStatusCounts: () => Promise<void>;
+  fetchStatusCounts: (params?: ChannelQueryParams) => Promise<void>;
   fetchChannel: (id: number) => Promise<ChannelSchema | null>;
   createChannel: (channel: ChannelSchema) => Promise<ChannelSchema | null>;
   updateChannel: (id: number, channel: ChannelSchema) => Promise<ChannelSchema | null>;
@@ -114,10 +114,14 @@ export const useChannelStore = create<ChannelState>()(
         }
       },
       
-      fetchStatusCounts: async () => {
+      fetchStatusCounts: async (params) => {
         try {
-          // Récupère les comptages sans filtres pour avoir tous les statuts
-          const response = await channelApi.count({});
+          // Récupère les comptages en incluant les filtres actuels (notamment search)
+          // mais exclut les filtres status, sort_by, sort_order et limit pour avoir tous les statuts
+          const currentFilters = { ...get().filters, ...params };
+          const { status, sort_by, sort_order, limit, ...filtersForCount } = currentFilters;
+          
+          const response = await channelApi.count(filtersForCount);
           
           // Convertit la réponse en objet de comptages par statut
           const statusCounts: Record<string, number> = {};

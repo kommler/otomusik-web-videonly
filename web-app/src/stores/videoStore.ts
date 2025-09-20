@@ -36,7 +36,7 @@ interface VideoState {
   // API Actions
   fetchVideos: (params?: VideoQueryParams) => Promise<void>;
   fetchVideoCount: (params?: VideoQueryParams) => Promise<void>;
-  fetchStatusCounts: () => Promise<void>;
+  fetchStatusCounts: (params?: VideoQueryParams) => Promise<void>;
   fetchVideo: (id: number) => Promise<VideoSchema | null>;
   createVideo: (video: VideoSchema) => Promise<VideoSchema | null>;
   updateVideo: (id: number, video: VideoSchema) => Promise<VideoSchema | null>;
@@ -114,10 +114,14 @@ export const useVideoStore = create<VideoState>()(
         }
       },
       
-      fetchStatusCounts: async () => {
+      fetchStatusCounts: async (params) => {
         try {
-          // Récupère les comptages sans filtres pour avoir tous les statuts
-          const response = await videoApi.count({});
+          // Récupère les comptages en incluant les filtres actuels (notamment search)
+          // mais exclut les filtres status, sort_by, sort_order et limit pour avoir tous les statuts
+          const currentFilters = { ...get().filters, ...params };
+          const { status, sort_by, sort_order, limit, ...filtersForCount } = currentFilters;
+          
+          const response = await videoApi.count(filtersForCount);
           
           // Convertit la réponse en objet de comptages par statut
           const statusCounts: Record<string, number> = {};
