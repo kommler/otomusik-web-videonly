@@ -16,3 +16,4 @@ export { Notification, NotificationContainer } from './notification';
 export { SearchInput } from './search-input';
 export { DataTable } from './data-table';
 export { FormField, FormInput, FormTextarea, FormSelect } from './form';
+export { Tooltip } from './tooltip';

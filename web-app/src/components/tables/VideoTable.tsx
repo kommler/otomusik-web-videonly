@@ -3,6 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { PlayIcon, ClockIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { VideoSchema } from '@/types/api';
 import { DataTable } from '@/components/ui/data-table';
+import { Tooltip } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
 interface VideoTableProps {
@@ -18,7 +19,10 @@ interface VideoTableProps {
 }
 
 // Status badge component
-const StatusBadge: React.FC<{ status?: string | null }> = ({ status }) => {
+const StatusBadge: React.FC<{ 
+  status?: string | null; 
+  errors?: any; 
+}> = ({ status, errors }) => {
   if (!status) return <span className="text-gray-400">-</span>;
   
   const getStatusColor = (status: string) => {
@@ -37,7 +41,24 @@ const StatusBadge: React.FC<{ status?: string | null }> = ({ status }) => {
     }
   };
 
-  return (
+  const formatErrorMessage = (errors: any): string => {
+    if (!errors) return '';
+    
+    if (typeof errors === 'string') {
+      return errors;
+    }
+    
+    if (typeof errors === 'object') {
+      if (errors.message) {
+        return errors.message;
+      }
+      return JSON.stringify(errors, null, 2);
+    }
+    
+    return String(errors);
+  };
+
+  const badge = (
     <span className={cn(
       "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize",
       getStatusColor(status)
@@ -45,6 +66,28 @@ const StatusBadge: React.FC<{ status?: string | null }> = ({ status }) => {
       {status}
     </span>
   );
+
+  // Add tooltip for FAILED status with error messages
+  if (status.toLowerCase() === 'failed' && errors) {
+    const errorMessage = formatErrorMessage(errors);
+    
+    return (
+      <Tooltip 
+        content={
+          <div className="max-w-sm">
+            <div className="font-semibold mb-1">Error Details:</div>
+            <div className="text-sm whitespace-pre-wrap">{errorMessage}</div>
+          </div>
+        }
+        position="top"
+        contentClassName="bg-red-900 dark:bg-red-800 border border-red-700"
+      >
+        {badge}
+      </Tooltip>
+    );
+  }
+
+  return badge;
 };
 
 // Duration formatter
@@ -167,7 +210,9 @@ export const VideoTable: React.FC<VideoTableProps> = ({
       title: 'Status',
       sortable: true,
       width: '120px',
-      render: (status: string | null) => <StatusBadge status={status} />,
+      render: (status: string | null, video: VideoSchema) => (
+        <StatusBadge status={status} errors={video.errors} />
+      ),
     },
     {
       key: 'file_size',
