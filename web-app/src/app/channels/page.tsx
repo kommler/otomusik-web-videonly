@@ -5,7 +5,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { Layout } from '@/components/layout/Layout';
 import { ChannelTable } from '@/components/tables';
 import { FilterPanel } from '@/components/filters';
-import { Button, LoadingSpinner, Modal } from '@/components/ui';
+import { Button, LoadingSpinner, Modal, Pagination } from '@/components/ui';
 import { FormInput, FormTextarea } from '@/components/ui/form';
 import { useChannelStore, useUIStore } from '@/stores';
 import { ChannelSchema } from '@/types/api';
@@ -36,9 +36,13 @@ export default function ChannelsPage() {
     channels, 
     loading, 
     filters, 
+    currentPage,
+    pageSize,
+    totalCount,
     statusCounts,
     fetchChannels, 
     setFilters,
+    setCurrentPage,
     fetchStatusCounts,
     updateChannel,
     deleteChannel,
@@ -229,6 +233,21 @@ export default function ChannelsPage() {
     setFilters(newFilters);
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    const newFilters = {
+      ...filters,
+      limit: size,
+    };
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
+
+  const totalPages = Math.ceil(totalCount / pageSize);
+
   return (
     <Layout>
       <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -268,6 +287,7 @@ export default function ChannelsPage() {
             ).length}
             type="channel"
             statusCounts={statusCounts}
+            totalRecords={totalCount}
           />
         </div>
 
@@ -277,15 +297,30 @@ export default function ChannelsPage() {
             <LoadingSpinner size="lg" />
           </div>
         ) : (
-          <ChannelTable
-            channels={channels}
-            loading={loading}
-            onSort={handleSort}
-            sortKey={filters.sort_by}
-            sortDirection={filters.sort_order}
-            onEdit={openEditModal}
-            onDelete={handleDeleteChannel}
-          />
+          <>
+            <ChannelTable
+              channels={channels}
+              loading={loading}
+              onSort={handleSort}
+              sortKey={filters.sort_by}
+              sortDirection={filters.sort_order}
+              onEdit={openEditModal}
+              onDelete={handleDeleteChannel}
+            />
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalRecords={totalCount}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                className="mt-4"
+              />
+            )}
+          </>
         )}
 
         {/* Create Modal */}

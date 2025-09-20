@@ -93,6 +93,7 @@ interface BaseFilterProps {
   onClearFilters: () => void;
   activeFiltersCount: number;
   statusCounts?: Record<string, number>;
+  totalRecords?: number;
 }
 
 interface VideoFiltersProps extends BaseFilterProps {
@@ -205,42 +206,55 @@ export const FilterPanel: React.FC<FilterPanelProps> = (props) => {
         </div>
 
         {/* Quick Status Filters */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Status:
-          </span>
-          {statusOptions.map((status) => {
-            const count = props.statusCounts?.[status.value] || 0;
-            const isActive = (props.filters.status || []).includes(status.value);
-            
-            // Get appropriate colors based on filter type and status
-            const colors = props.type === 'video' 
-              ? getVideoStatusColors(status.value)
-              : getChannelStatusColors(status.value);
-            
-            return (
-              <button
-                key={status.value}
-                onClick={() => handleStatusToggle(status.value)}
-                className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center space-x-1 hover:opacity-80",
-                  isActive
-                    ? colors.active
-                    : colors.normal
-                )}
-              >
-                <span>{status.label}</span>
-                {count > 0 && (
-                  <span className={cn(
-                    "ml-1 px-1.5 py-0.5 rounded-full text-xs font-semibold",
-                    colors.count
-                  )}>
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Status:
+            </span>
+            {statusOptions.map((status) => {
+              const count = props.statusCounts?.[status.value] || 0;
+              const isActive = (props.filters.status || []).includes(status.value);
+              
+              // Get appropriate colors based on filter type and status
+              const colors = props.type === 'video' 
+                ? getVideoStatusColors(status.value)
+                : getChannelStatusColors(status.value);
+              
+              return (
+                <button
+                  key={status.value}
+                  onClick={() => handleStatusToggle(status.value)}
+                  className={cn(
+                    "px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center space-x-1 hover:opacity-80",
+                    isActive
+                      ? colors.active
+                      : colors.normal
+                  )}
+                >
+                  <span>{status.label}</span>
+                  {count > 0 && (
+                    <span className={cn(
+                      "ml-1 px-1.5 py-0.5 rounded-full text-xs font-semibold",
+                      colors.count
+                    )}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          
+          {/* Total Records Count */}
+          {props.totalRecords !== undefined && (
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <span className="font-medium">Total:</span>
+              <span className="ml-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md font-mono text-sm">
+                {props.totalRecords.toLocaleString()}
+              </span>
+              <span className="ml-1">records</span>
+            </div>
+          )}
         </div>
       </div>
 

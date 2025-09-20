@@ -5,7 +5,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { Layout } from '@/components/layout/Layout';
 import { VideoTable } from '@/components/tables';
 import { FilterPanel } from '@/components/filters';
-import { Button, LoadingSpinner, Modal } from '@/components/ui';
+import { Button, LoadingSpinner, Modal, Pagination } from '@/components/ui';
 import { FormInput, FormTextarea, FormSelect } from '@/components/ui/form';
 import { useVideoStore, useChannelStore, useUIStore } from '@/stores';
 import { VideoSchema } from '@/types/api';
@@ -38,6 +38,7 @@ export default function VideosPage() {
     filters, 
     currentPage,
     pageSize,
+    totalCount,
     statusCounts,
     fetchVideos, 
     setFilters, 
@@ -257,6 +258,21 @@ export default function VideosPage() {
     setFilters(newFilters);
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    const newFilters = {
+      ...filters,
+      limit: size,
+    };
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
+
+  const totalPages = Math.ceil(totalCount / pageSize);
+
   return (
     <Layout>
       <div className="p-6">
@@ -296,6 +312,7 @@ export default function VideosPage() {
             ).length}
             type="video"
             statusCounts={statusCounts}
+            totalRecords={totalCount}
           />
         </div>
 
@@ -305,16 +322,31 @@ export default function VideosPage() {
             <LoadingSpinner size="lg" />
           </div>
         ) : (
-          <VideoTable
-            videos={videos}
-            loading={loading}
-            onSort={handleSort}
-            sortKey={filters.sort_by}
-            sortDirection={filters.sort_order}
-            onEdit={openEditModal}
-            onDelete={handleDeleteVideo}
-            onStatusChange={handleStatusChange}
-          />
+          <>
+            <VideoTable
+              videos={videos}
+              loading={loading}
+              onSort={handleSort}
+              sortKey={filters.sort_by}
+              sortDirection={filters.sort_order}
+              onEdit={openEditModal}
+              onDelete={handleDeleteVideo}
+              onStatusChange={handleStatusChange}
+            />
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalRecords={totalCount}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                className="mt-4"
+              />
+            )}
+          </>
         )}
 
         {/* Create Modal */}
