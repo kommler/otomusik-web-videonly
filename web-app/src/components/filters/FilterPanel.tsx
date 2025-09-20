@@ -16,6 +16,71 @@ import {
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
+// Status color mappings - consistent with tables
+const getVideoStatusColors = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'downloaded':
+      return {
+        normal: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+        active: 'bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100',
+        count: 'bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100'
+      };
+    case 'pending':
+    case 'extracting':
+    case 'downloading':
+      return {
+        normal: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+        active: 'bg-yellow-200 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100',
+        count: 'bg-yellow-200 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100'
+      };
+    case 'failed':
+    case 'error':
+      return {
+        normal: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+        active: 'bg-red-200 text-red-900 dark:bg-red-800 dark:text-red-100',
+        count: 'bg-red-200 text-red-900 dark:bg-red-800 dark:text-red-100'
+      };
+    default:
+      return {
+        normal: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
+        active: 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100',
+        count: 'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-200'
+      };
+  }
+};
+
+const getChannelStatusColors = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'active':
+    case 'completed':
+      return {
+        normal: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+        active: 'bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100',
+        count: 'bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100'
+      };
+    case 'pending':
+    case 'scraping':
+      return {
+        normal: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+        active: 'bg-yellow-200 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100',
+        count: 'bg-yellow-200 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100'
+      };
+    case 'inactive':
+    case 'failed':
+      return {
+        normal: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+        active: 'bg-red-200 text-red-900 dark:bg-red-800 dark:text-red-100',
+        count: 'bg-red-200 text-red-900 dark:bg-red-800 dark:text-red-100'
+      };
+    default:
+      return {
+        normal: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
+        active: 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100',
+        count: 'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-200'
+      };
+  }
+};
+
 interface BaseFilterProps {
   className?: string;
   onFiltersChange: (filters: any) => void;
@@ -141,24 +206,27 @@ export const FilterPanel: React.FC<FilterPanelProps> = (props) => {
             const count = props.statusCounts?.[status.value] || 0;
             const isActive = (props.filters.status || []).includes(status.value);
             
+            // Get appropriate colors based on filter type and status
+            const colors = props.type === 'video' 
+              ? getVideoStatusColors(status.value)
+              : getChannelStatusColors(status.value);
+            
             return (
               <button
                 key={status.value}
                 onClick={() => handleStatusToggle(status.value)}
                 className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center space-x-1",
+                  "px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center space-x-1 hover:opacity-80",
                   isActive
-                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                    ? colors.active
+                    : colors.normal
                 )}
               >
                 <span>{status.label}</span>
                 {count > 0 && (
                   <span className={cn(
                     "ml-1 px-1.5 py-0.5 rounded-full text-xs font-semibold",
-                    isActive 
-                      ? "bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100"
-                      : "bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-200"
+                    colors.count
                   )}>
                     {count}
                   </span>
