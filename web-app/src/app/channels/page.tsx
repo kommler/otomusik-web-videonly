@@ -287,7 +287,6 @@ export default function ChannelsPage() {
             ).length}
             type="channel"
             statusCounts={statusCounts}
-            totalRecords={totalCount}
           />
         </div>
 

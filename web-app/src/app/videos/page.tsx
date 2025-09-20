@@ -312,7 +312,6 @@ export default function VideosPage() {
             ).length}
             type="video"
             statusCounts={statusCounts}
-            totalRecords={totalCount}
           />
         </div>
 
