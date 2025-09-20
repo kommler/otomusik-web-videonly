@@ -312,6 +312,7 @@ export default function VideosPage() {
             ).length}
             type="video"
             statusCounts={statusCounts}
+            currentRecordsCount={videos.length}
           />
         </div>
 
