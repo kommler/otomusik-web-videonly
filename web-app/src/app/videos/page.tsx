@@ -184,6 +184,35 @@ export default function VideosPage() {
     }
   };
 
+  const handleStatusChange = async (video: VideoSchema, newStatus: string) => {
+    if (!video.id) return;
+
+    try {
+      // Create updated video data with new status
+      const videoData: VideoSchema = {
+        ...video,
+        status: newStatus,
+      };
+
+      const updatedVideo = await updateVideo(video.id, videoData);
+      
+      if (updatedVideo) {
+        addNotification({
+          type: 'success',
+          title: 'Status Updated',
+          message: `Video status changed to ${newStatus}`,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update video status:', error);
+      addNotification({
+        type: 'error',
+        title: 'Status Update Failed',
+        message: 'Failed to update the video status. Please try again.',
+      });
+    }
+  };
+
   const openCreateModal = () => {
     setFormData({
       oto_channel_id: null,
@@ -283,6 +312,7 @@ export default function VideosPage() {
             sortDirection={filters.sort_order}
             onEdit={openEditModal}
             onDelete={handleDeleteVideo}
+            onStatusChange={handleStatusChange}
           />
         )}
 

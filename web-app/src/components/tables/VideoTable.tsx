@@ -16,13 +16,16 @@ interface VideoTableProps {
   onEdit?: (video: VideoSchema) => void;
   onDelete?: (video: VideoSchema) => void;
   onRowClick?: (video: VideoSchema) => void;
+  onStatusChange?: (video: VideoSchema, newStatus: string) => void;
 }
 
 // Status badge component
 const StatusBadge: React.FC<{ 
   status?: string | null; 
   errors?: any; 
-}> = ({ status, errors }) => {
+  video?: VideoSchema;
+  onStatusChange?: (video: VideoSchema, newStatus: string) => void;
+}> = ({ status, errors, video, onStatusChange }) => {
   if (!status) return <span className="text-gray-400">-</span>;
   
   const getStatusColor = (status: string) => {
@@ -58,11 +61,21 @@ const StatusBadge: React.FC<{
     return String(errors);
   };
 
+  const handleDoubleClick = () => {
+    if (status?.toLowerCase() === 'failed' && video && onStatusChange) {
+      onStatusChange(video, 'PENDING');
+    }
+  };
+
   const badge = (
-    <span className={cn(
-      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize",
-      getStatusColor(status)
-    )}>
+    <span 
+      className={cn(
+        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize",
+        getStatusColor(status),
+        status?.toLowerCase() === 'failed' && onStatusChange ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
+      )}
+      onDoubleClick={handleDoubleClick}
+    >
       {status}
     </span>
   );
@@ -75,8 +88,11 @@ const StatusBadge: React.FC<{
       <Tooltip 
         content={
           <div className="max-w-sm">
-            <div className="font-semibold mb-1">Error Details:</div>
-            <div className="text-sm whitespace-pre-wrap">{errorMessage}</div>
+            <div className="text-blue-300 mb-2 font-medium">
+              💡 Double-cliquez pour repasser en PENDING
+            </div>
+            <div className="font-semibold mb-1 text-white">Error Details:</div>
+            <div className="text-sm whitespace-pre-wrap text-gray-200">{errorMessage}</div>
           </div>
         }
         position="top"
@@ -123,6 +139,7 @@ export const VideoTable: React.FC<VideoTableProps> = ({
   onEdit,
   onDelete,
   onRowClick,
+  onStatusChange,
 }) => {
   const columns = [
     {
@@ -211,7 +228,7 @@ export const VideoTable: React.FC<VideoTableProps> = ({
       sortable: true,
       width: '120px',
       render: (status: string | null, video: VideoSchema) => (
-        <StatusBadge status={status} errors={video.errors} />
+        <StatusBadge status={status} errors={video.errors} video={video} onStatusChange={onStatusChange} />
       ),
     },
     {
