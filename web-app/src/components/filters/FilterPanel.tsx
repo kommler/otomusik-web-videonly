@@ -40,6 +40,12 @@ const getVideoStatusColors = (status: string) => {
         active: 'bg-red-200 text-red-900 dark:bg-red-800 dark:text-red-100',
         count: 'bg-red-200 text-red-900 dark:bg-red-800 dark:text-red-100'
       };
+    case 'skip':
+      return {
+        normal: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+        active: 'bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100',
+        count: 'bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100'
+      };
     default:
       return {
         normal: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
@@ -111,6 +117,7 @@ const videoStatusOptions = [
   { value: 'FAILED', label: 'Failed' },
   { value: 'ERROR', label: 'Error' },
   { value: 'EXTRACTING', label: 'Extracting' },
+  { value: 'SKIP', label: 'Skip' },
 ];
 
 const channelStatusOptions = [

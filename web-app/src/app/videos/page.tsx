@@ -28,6 +28,7 @@ const videoStatusOptions = [
   { value: 'FAILED', label: 'Failed' },
   { value: 'ERROR', label: 'Error' },
   { value: 'EXTRACTING', label: 'Extracting' },
+  { value: 'SKIP', label: 'Skip' },
 ];
 
 export default function VideosPage() {
