@@ -57,8 +57,7 @@ const getVideoStatusColors = (status: string) => {
 
 const getChannelStatusColors = (status: string) => {
   switch (status.toLowerCase()) {
-    case 'active':
-    case 'completed':
+    case 'downloaded':
       return {
         normal: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
         active: 'bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100',
@@ -71,7 +70,6 @@ const getChannelStatusColors = (status: string) => {
         active: 'bg-yellow-200 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100',
         count: 'bg-yellow-200 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100'
       };
-    case 'inactive':
     case 'failed':
       return {
         normal: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
@@ -122,10 +120,9 @@ const videoStatusOptions = [
 ];
 
 const channelStatusOptions = [
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'INACTIVE', label: 'Inactive' },
   { value: 'PENDING', label: 'Pending' },
   { value: 'SCRAPING', label: 'Scraping' },
+  { value: 'DOWNLOADED', label: 'Downloaded' },
   { value: 'FAILED', label: 'Failed' },
 ];
 

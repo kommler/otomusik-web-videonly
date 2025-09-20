@@ -24,9 +24,9 @@ interface ChannelFormData {
 // Status options for channels
 const channelStatusOptions = [
   { value: '', label: 'Select status' },
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'INACTIVE', label: 'Inactive' },
   { value: 'PENDING', label: 'Pending' },
+  { value: 'SCRAPING', label: 'Scraping' },
+  { value: 'DOWNLOADED', label: 'Downloaded' },
   { value: 'ERROR', label: 'Error' },
   { value: 'FAILED', label: 'Failed' },
 ];
