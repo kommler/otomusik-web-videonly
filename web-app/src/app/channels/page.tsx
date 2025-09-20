@@ -235,6 +235,9 @@ export default function ChannelsPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    // Met à jour la pagination côté client (pas besoin de fetch)
+    const { updatePaginatedChannels } = useChannelStore.getState();
+    updatePaginatedChannels();
   };
 
   const handlePageSizeChange = (size: number) => {

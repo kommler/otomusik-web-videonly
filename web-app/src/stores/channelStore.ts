@@ -6,6 +6,7 @@ import { channelApi, APIError } from '../lib/api/client';
 interface ChannelState {
   // Data
   channels: ChannelSchema[];
+  allChannels: ChannelSchema[]; // Toutes les données filtrées (pour pagination client)
   selectedChannel: ChannelSchema | null;
   totalCount: number;
   statusCounts: Record<string, number>;
@@ -26,12 +27,16 @@ interface ChannelState {
   
   // Actions
   setChannels: (channels: ChannelSchema[]) => void;
+  setAllChannels: (channels: ChannelSchema[]) => void;
   setSelectedChannel: (channel: ChannelSchema | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setFilters: (filters: ChannelQueryParams) => void;
   setCurrentPage: (page: number) => void;
   setStatusCounts: (counts: Record<string, number>) => void;
+  
+  // Utility method for client-side pagination
+  updatePaginatedChannels: () => void;
   
   // API Actions
   fetchChannels: (params?: ChannelQueryParams) => Promise<void>;
@@ -61,6 +66,7 @@ export const useChannelStore = create<ChannelState>()(
     (set, get) => ({
       // Initial state
       channels: [],
+      allChannels: [],
       selectedChannel: null,
       totalCount: 0,
       statusCounts: {},
@@ -75,6 +81,7 @@ export const useChannelStore = create<ChannelState>()(
       
       // Basic setters
       setChannels: (channels) => set({ channels }),
+      setAllChannels: (channels) => set({ allChannels: channels }),
       setSelectedChannel: (channel) => set({ selectedChannel: channel }),
       setLoading: (loading) => set({ loading }),
       setError: (error) => set({ error }),
@@ -82,13 +89,31 @@ export const useChannelStore = create<ChannelState>()(
       setCurrentPage: (page) => set({ currentPage: page }),
       setStatusCounts: (counts) => set({ statusCounts: counts }),
       
+      // Utility method for client-side pagination
+      updatePaginatedChannels: () => {
+        const { allChannels, currentPage, pageSize } = get();
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const paginatedChannels = allChannels.slice(startIndex, endIndex);
+        set({ channels: paginatedChannels, totalCount: allChannels.length });
+      },
+      
       // API Actions
       fetchChannels: async (params) => {
         set({ loading: true, error: null });
         try {
-          const queryParams = { ...get().filters, ...params };
-          const channels = await channelApi.list(queryParams);
-          set({ channels, loading: false });
+          const currentState = get();
+          // Récupère toutes les données sans limite pour la pagination côté client
+          const queryParams = { 
+            ...currentState.filters, 
+            ...params,
+            limit: undefined // Supprime la limite pour récupérer toutes les données
+          };
+          const allChannels = await channelApi.list(queryParams);
+          set({ allChannels, loading: false });
+          
+          // Met à jour la pagination côté client
+          get().updatePaginatedChannels();
         } catch (error) {
           const errorMessage = error instanceof APIError 
             ? error.message 

@@ -6,6 +6,7 @@ import { videoApi, APIError } from '../lib/api/client';
 interface VideoState {
   // Data
   videos: VideoSchema[];
+  allVideos: VideoSchema[]; // Toutes les données filtrées (pour pagination client)
   selectedVideo: VideoSchema | null;
   totalCount: number;
   statusCounts: Record<string, number>;
@@ -26,12 +27,16 @@ interface VideoState {
   
   // Actions
   setVideos: (videos: VideoSchema[]) => void;
+  setAllVideos: (videos: VideoSchema[]) => void;
   setSelectedVideo: (video: VideoSchema | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setFilters: (filters: VideoQueryParams) => void;
   setCurrentPage: (page: number) => void;
   setStatusCounts: (counts: Record<string, number>) => void;
+  
+  // Utility method for client-side pagination
+  updatePaginatedVideos: () => void;
   
   // API Actions
   fetchVideos: (params?: VideoQueryParams) => Promise<void>;
@@ -61,6 +66,7 @@ export const useVideoStore = create<VideoState>()(
     (set, get) => ({
       // Initial state
       videos: [],
+      allVideos: [],
       selectedVideo: null,
       totalCount: 0,
       statusCounts: {},
@@ -75,6 +81,7 @@ export const useVideoStore = create<VideoState>()(
       
       // Basic setters
       setVideos: (videos) => set({ videos }),
+      setAllVideos: (videos) => set({ allVideos: videos }),
       setSelectedVideo: (video) => set({ selectedVideo: video }),
       setLoading: (loading) => set({ loading }),
       setError: (error) => set({ error }),
@@ -82,13 +89,31 @@ export const useVideoStore = create<VideoState>()(
       setCurrentPage: (page) => set({ currentPage: page }),
       setStatusCounts: (counts) => set({ statusCounts: counts }),
       
+      // Utility method for client-side pagination
+      updatePaginatedVideos: () => {
+        const { allVideos, currentPage, pageSize } = get();
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const paginatedVideos = allVideos.slice(startIndex, endIndex);
+        set({ videos: paginatedVideos, totalCount: allVideos.length });
+      },
+      
       // API Actions
       fetchVideos: async (params) => {
         set({ loading: true, error: null });
         try {
-          const queryParams = { ...get().filters, ...params };
-          const videos = await videoApi.list(queryParams);
-          set({ videos, loading: false });
+          const currentState = get();
+          // Récupère toutes les données sans limite pour la pagination côté client
+          const queryParams = { 
+            ...currentState.filters, 
+            ...params,
+            limit: undefined // Supprime la limite pour récupérer toutes les données
+          };
+          const allVideos = await videoApi.list(queryParams);
+          set({ allVideos, loading: false });
+          
+          // Met à jour la pagination côté client
+          get().updatePaginatedVideos();
         } catch (error) {
           const errorMessage = error instanceof APIError 
             ? error.message 

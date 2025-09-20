@@ -260,6 +260,9 @@ export default function VideosPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    // Met à jour la pagination côté client (pas besoin de fetch)
+    const { updatePaginatedVideos } = useVideoStore.getState();
+    updatePaginatedVideos();
   };
 
   const handlePageSizeChange = (size: number) => {
