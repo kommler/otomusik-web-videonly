@@ -93,7 +93,7 @@ interface BaseFilterProps {
   onClearFilters: () => void;
   activeFiltersCount: number;
   statusCounts?: Record<string, number>;
-  currentRecordsCount?: number; // Nombre d'enregistrements actuellement affichés après filtrage
+  totalFilteredCount?: number; // Nombre total d'enregistrements après filtrage (toutes pages)
 }
 
 interface VideoFiltersProps extends BaseFilterProps {
@@ -247,13 +247,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = (props) => {
             })}
           </div>
           
-          {/* Total Records Count - Use current records count if available, otherwise sum status counts */}
-          {(props.currentRecordsCount !== undefined || props.statusCounts) && (
+          {/* Total Records Count - Use total filtered count if available, otherwise sum status counts */}
+          {(props.totalFilteredCount !== undefined || props.statusCounts) && (
             <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
               <span className="font-medium">Total:</span>
               <span className="ml-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md font-mono text-sm">
-                {props.currentRecordsCount !== undefined 
-                  ? props.currentRecordsCount.toLocaleString()
+                {props.totalFilteredCount !== undefined 
+                  ? props.totalFilteredCount.toLocaleString()
                   : Object.values(props.statusCounts || {}).reduce((sum, count) => sum + count, 0).toLocaleString()
                 }
               </span>

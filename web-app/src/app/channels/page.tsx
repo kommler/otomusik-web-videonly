@@ -287,7 +287,7 @@ export default function ChannelsPage() {
             ).length}
             type="channel"
             statusCounts={statusCounts}
-            currentRecordsCount={channels.length}
+            totalFilteredCount={totalCount}
           />
         </div>
 

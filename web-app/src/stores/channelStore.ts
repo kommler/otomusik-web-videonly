@@ -125,13 +125,29 @@ export const useChannelStore = create<ChannelState>()(
           
           // Convertit la réponse en objet de comptages par statut
           const statusCounts: Record<string, number> = {};
+          let totalCount = 0;
+          
           Object.entries(response).forEach(([key, value]) => {
             if (key !== 'count' && typeof value === 'number') {
               statusCounts[key] = value;
+            } else if (key === 'count' && typeof value === 'number') {
+              totalCount = value; // Utilise le count total si disponible
             }
           });
           
-          set({ statusCounts });
+          // Si des statuts sont sélectionnés, calcule le total basé sur les statuts filtrés
+          if (status && status.length > 0) {
+            totalCount = status.reduce((sum, selectedStatus) => {
+              return sum + (statusCounts[selectedStatus] || 0);
+            }, 0);
+          } else {
+            // Si aucun statut sélectionné, utilise la somme de tous les statuts
+            if (totalCount === 0) {
+              totalCount = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
+            }
+          }
+          
+          set({ statusCounts, totalCount });
         } catch (error) {
           const errorMessage = error instanceof APIError 
             ? error.message 
