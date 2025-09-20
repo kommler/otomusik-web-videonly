@@ -227,15 +227,17 @@ export const FilterPanel: React.FC<FilterPanelProps> = (props) => {
                   className={cn(
                     "px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center space-x-1 hover:opacity-80",
                     isActive
-                      ? colors.active
-                      : colors.normal
+                      ? colors.active  // Fond coloré complet quand sélectionné
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"  // Fond neutre quand non sélectionné
                   )}
                 >
                   <span>{status.label}</span>
                   {count > 0 && (
                     <span className={cn(
                       "ml-1 px-1.5 py-0.5 rounded-full text-xs font-semibold",
-                      colors.count
+                      isActive 
+                        ? colors.count  // Fond coloré pour le compteur quand sélectionné
+                        : colors.normal  // Fond coloré selon le status quand non sélectionné
                     )}>
                       {count}
                     </span>
