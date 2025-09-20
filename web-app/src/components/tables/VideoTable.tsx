@@ -30,7 +30,6 @@ const StatusBadge: React.FC<{
   
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'completed':
       case 'downloaded':
         return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
       case 'pending':

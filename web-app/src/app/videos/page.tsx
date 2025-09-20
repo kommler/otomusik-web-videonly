@@ -24,7 +24,7 @@ interface VideoFormData {
 const videoStatusOptions = [
   { value: 'PENDING', label: 'Pending' },
   { value: 'DOWNLOADING', label: 'Downloading' },
-  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'DOWNLOADED', label: 'Downloaded' },
   { value: 'FAILED', label: 'Failed' },
   { value: 'ERROR', label: 'Error' },
   { value: 'EXTRACTING', label: 'Extracting' },
