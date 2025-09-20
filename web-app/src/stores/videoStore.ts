@@ -85,7 +85,7 @@ export const useVideoStore = create<VideoState>()(
       setSelectedVideo: (video) => set({ selectedVideo: video }),
       setLoading: (loading) => set({ loading }),
       setError: (error) => set({ error }),
-      setFilters: (filters) => set({ filters }),
+      setFilters: (filters) => set({ filters, currentPage: 1 }), // Reset page to 1 when filters change
       setCurrentPage: (page) => set({ currentPage: page }),
       setStatusCounts: (counts) => set({ statusCounts: counts }),
       

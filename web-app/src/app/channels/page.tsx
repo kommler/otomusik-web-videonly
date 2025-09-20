@@ -245,8 +245,7 @@ export default function ChannelsPage() {
       ...filters,
       limit: size,
     };
-    setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when changing page size
+    setFilters(newFilters); // setFilters automatically resets page to 1
   };
 
   const totalPages = Math.ceil(totalCount / pageSize);
