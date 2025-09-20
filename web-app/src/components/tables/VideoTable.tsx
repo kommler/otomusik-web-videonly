@@ -64,7 +64,7 @@ const StatusBadge: React.FC<{
   };
 
   const handleDoubleClick = () => {
-    if (status?.toLowerCase() === 'failed' && video && onStatusChange) {
+    if ((status?.toLowerCase() === 'failed' || status?.toLowerCase() === 'skip') && video && onStatusChange) {
       onStatusChange(video, 'PENDING');
     }
   };
@@ -74,7 +74,7 @@ const StatusBadge: React.FC<{
       className={cn(
         "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize",
         getStatusColor(status),
-        status?.toLowerCase() === 'failed' && onStatusChange ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
+        (status?.toLowerCase() === 'failed' || status?.toLowerCase() === 'skip') && onStatusChange ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
       )}
       onDoubleClick={handleDoubleClick}
     >
@@ -99,6 +99,27 @@ const StatusBadge: React.FC<{
         }
         position="top"
         contentClassName="bg-red-900 dark:bg-red-800 border border-red-700"
+      >
+        {badge}
+      </Tooltip>
+    );
+  }
+
+  // Add tooltip for SKIP status
+  if (status.toLowerCase() === 'skip') {
+    return (
+      <Tooltip 
+        content={
+          <div className="max-w-sm">
+            <div className="text-blue-300 mb-2 font-medium">
+              💡 Double-cliquez pour repasser en PENDING
+            </div>
+            <div className="font-semibold mb-1 text-white">Status:</div>
+            <div className="text-sm text-gray-200">Cette vidéo a été volontairement ignorée</div>
+          </div>
+        }
+        position="top"
+        contentClassName="bg-blue-900 dark:bg-blue-800 border border-blue-700"
       >
         {badge}
       </Tooltip>
