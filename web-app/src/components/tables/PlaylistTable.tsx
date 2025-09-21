@@ -60,14 +60,6 @@ export const PlaylistTable: React.FC<PlaylistTableProps> = ({
   onDelete,
   onRowClick,
 }) => {
-  // Debug logging
-  console.log('PlaylistTable props:', {
-    playlistsCount: playlists?.length,
-    hasOnView: !!onView,
-    hasOnEdit: !!onEdit,
-    hasOnDelete: !!onDelete,
-    loading
-  });
   const columns = [
     {
       key: 'id',
