@@ -205,11 +205,11 @@ export const PlaylistFilterPanel: React.FC<PlaylistFilterPanelProps> = ({
 
         {/* Status filters */}
         {statusOptions.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Statut
-            </label>
-            <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Status:
+              </span>
               {statusOptions.map((status) => {
                 const isSelected = (filters.status || []).includes(status.value);
                 const colors = getPlaylistStatusColors(status.value);
@@ -221,26 +221,42 @@ export const PlaylistFilterPanel: React.FC<PlaylistFilterPanelProps> = ({
                     onClick={() => handleStatusChange(status.value)}
                     disabled={loading}
                     className={cn(
-                      'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium border transition-colors',
-                      'hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed',
+                      'px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center space-x-1 hover:opacity-80',
+                      'disabled:opacity-50 disabled:cursor-not-allowed',
                       isSelected
                         ? colors.active  // Fond coloré complet quand sélectionné
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 border-gray-200 dark:border-gray-600'  // Fond neutre quand non sélectionné
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'  // Fond neutre quand non sélectionné
                     )}
                   >
-                    {status.label}
-                    <span className={cn(
-                      'ml-1.5 px-1.5 py-0.5 rounded-full text-xs font-medium',
-                      isSelected 
-                        ? colors.count  // Fond coloré pour le compteur quand sélectionné
-                        : colors.normal  // Fond coloré selon le statut quand non sélectionné
-                    )}>
-                      {count.toLocaleString()}
-                    </span>
+                    <span>{status.label}</span>
+                    {count > 0 && (
+                      <span className={cn(
+                        'ml-1 px-1.5 py-0.5 rounded-full text-xs font-semibold',
+                        isSelected 
+                          ? colors.count  // Fond coloré pour le compteur quand sélectionné
+                          : colors.normal  // Fond coloré selon le statut quand non sélectionné
+                      )}>
+                        {count.toLocaleString()}
+                      </span>
+                    )}
                   </button>
                 );
               })}
             </div>
+            
+            {/* Total Records Count */}
+            {(totalCount !== undefined || Object.keys(statusCounts).length > 0) && (
+              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Total:</span>
+                <span className="ml-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md font-mono text-sm">
+                  {totalCount !== undefined 
+                    ? totalCount.toLocaleString()
+                    : Object.values(statusCounts).reduce((sum, count) => sum + count, 0).toLocaleString()
+                  }
+                </span>
+                <span className="ml-1">playlists</span>
+              </div>
+            )}
           </div>
         )}
       </div>
