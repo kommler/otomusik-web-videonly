@@ -82,18 +82,30 @@ const PlaylistsPage: React.FC = () => {
 
   // Gestionnaires d'actions sur les playlists
   const handleView = useCallback((playlist: PlaylistSchema) => {
+    console.log('handleView called with:', playlist);
     setSelectedPlaylist(playlist);
-    // Ici on pourrait ouvrir un modal de visualisation ou naviguer vers une page de détail
+    // TODO: Ouvrir un modal de visualisation ou naviguer vers une page de détail
+    alert(`View playlist: ${playlist.name || playlist.id}`);
   }, [setSelectedPlaylist]);
 
   const handleEdit = useCallback((playlist: PlaylistSchema) => {
+    console.log('handleEdit called with:', playlist);
     setSelectedPlaylist(playlist);
-    setIsEditModalOpen(true);
+    // TODO: Ouvrir modal d'édition
+    alert(`Edit playlist: ${playlist.name || playlist.id}`);
+    // setIsEditModalOpen(true);
   }, [setSelectedPlaylist]);
 
   const handleDelete = useCallback((playlist: PlaylistSchema) => {
+    console.log('handleDelete called with:', playlist);
     setSelectedPlaylist(playlist);
-    setIsDeleteModalOpen(true);
+    // TODO: Ouvrir modal de confirmation de suppression
+    const confirmDelete = window.confirm(`Are you sure you want to delete playlist: ${playlist.name || playlist.id}?`);
+    if (confirmDelete) {
+      // Ici on appellerait la suppression réelle
+      alert(`Delete playlist: ${playlist.name || playlist.id}`);
+    }
+    // setIsDeleteModalOpen(true);
   }, [setSelectedPlaylist]);
 
   const handleCreate = useCallback(() => {
