@@ -165,8 +165,14 @@ export function DataTable<T extends Record<string, any>>({
   return (
     <div className="w-full">
       <div className={cn("shadow ring-1 ring-black ring-opacity-5 md:rounded-lg", className)}>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+        <div className={cn(
+          "overflow-x-auto",
+          className?.includes('overflow-hidden') && "overflow-hidden"
+        )}>
+          <table className={cn(
+            "min-w-full divide-y divide-gray-300 dark:divide-gray-700",
+            className?.includes('overflow-hidden') && "w-full table-fixed"
+          )}>
         <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
             {allColumns.map((column) => (

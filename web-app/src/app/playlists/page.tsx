@@ -210,14 +210,11 @@ const PlaylistsPage: React.FC = () => {
         {/* Table des playlists */}
         <PlaylistTable
           playlists={playlists}
+          loading={loading}
           onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          loading={loading}
-          creating={creating}
-          updating={updating}
-          deleting={deleting}
-          selectedId={selectedPlaylist?.id}
+          onRowClick={(playlist) => setSelectedPlaylist(playlist)}
         />
 
         {/* Contrôles de pagination (bas) */}
