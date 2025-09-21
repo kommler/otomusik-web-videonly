@@ -95,6 +95,7 @@ export function DataTable<T extends Record<string, any>>({
                 variant="ghost"
                 size="icon"
                 onClick={(e) => {
+                  console.log('DataTable: View button clicked', row);
                   e.stopPropagation();
                   onView(row);
                 }}
@@ -109,6 +110,7 @@ export function DataTable<T extends Record<string, any>>({
                 variant="ghost"
                 size="icon"
                 onClick={(e) => {
+                  console.log('DataTable: Edit button clicked', row);
                   e.stopPropagation();
                   onEdit(row);
                 }}
@@ -123,6 +125,7 @@ export function DataTable<T extends Record<string, any>>({
                 variant="ghost"
                 size="icon"
                 onClick={(e) => {
+                  console.log('DataTable: Delete button clicked', row);
                   e.stopPropagation();
                   onDelete(row);
                 }}

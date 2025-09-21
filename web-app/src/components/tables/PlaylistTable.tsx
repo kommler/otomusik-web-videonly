@@ -60,6 +60,12 @@ export const PlaylistTable: React.FC<PlaylistTableProps> = ({
   onDelete,
   onRowClick,
 }) => {
+  // Debug: Check if handlers are received
+  console.log('PlaylistTable handlers:', { 
+    hasOnEdit: typeof onEdit === 'function',
+    hasOnView: typeof onView === 'function',
+    hasOnDelete: typeof onDelete === 'function'
+  });
   const columns = [
     {
       key: 'id',
@@ -197,7 +203,7 @@ export const PlaylistTable: React.FC<PlaylistTableProps> = ({
   ];
 
   return (
-    <div className="w-full overflow-hidden">
+    <div className="w-full">
       <DataTable
         data={playlists}
         columns={columns}
@@ -211,7 +217,6 @@ export const PlaylistTable: React.FC<PlaylistTableProps> = ({
         onDelete={onDelete}
         showActions={!!(onView || onEdit || onDelete)}
         emptyMessage="No playlists found. Try adjusting your search or filters."
-        className="overflow-hidden"
       />
     </div>
   );
