@@ -6,8 +6,11 @@ import { PlaylistFilterPanel } from '../../components/filters/PlaylistFilterPane
 import { PlaylistTable } from '../../components/tables/PlaylistTable';
 import { Button } from '../../components/ui/button';
 import { Pagination } from '../../components/ui/pagination';
+import { Modal } from '../../components/ui/modal';
+import { FormInput, FormTextarea, FormSelect } from '../../components/ui/form';
 import { usePlaylistStore } from '../../stores';
 import { PlaylistSchema, PlaylistQueryParams } from '../../types/api';
+import { useUIStore } from '../../stores/uiStore';
 
 // Configuration des filtres spécifiques aux playlists
 const playlistFilterConfig = {
@@ -20,6 +23,23 @@ const playlistFilterConfig = {
     { value: 'downloaded_at', label: 'Date de téléchargement' },
   ],
 };
+
+// Status options for playlist editing
+const playlistStatusOptions = [
+  { value: 'DOWNLOADING', label: 'Downloading' },
+  { value: 'DOWNLOADED', label: 'Downloaded' },
+  { value: 'CURRENT', label: 'Current' },
+  { value: 'ANALYZED', label: 'Analyzed' },
+  { value: 'FAILED', label: 'Failed' },
+];
+
+// Resolution options
+const resolutionOptions = [
+  { value: '720', label: '720p' },
+  { value: '1080', label: '1080p' },
+  { value: '1440', label: '1440p' },
+  { value: '2160', label: '4K' },
+];
 
 const PlaylistsPage: React.FC = () => {
   const {
@@ -54,9 +74,23 @@ const PlaylistsPage: React.FC = () => {
     clearSelection,
   } = usePlaylistStore();
 
+  const { addNotification } = useUIStore();
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [editingPlaylist, setEditingPlaylist] = useState<PlaylistSchema | null>(null);
+  const [formLoading, setFormLoading] = useState(false);
+  
+  // Form data state
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    url: '',
+    topic: '',
+    resolution: '',
+    status: '',
+  });
 
   // Charger les données initiales
   useEffect(() => {
@@ -69,6 +103,36 @@ const PlaylistsPage: React.FC = () => {
     fetchPlaylists();
     fetchStatusCounts();
   }, [filters, fetchPlaylists, fetchStatusCounts]);
+
+  // Form handling functions
+  const handleFormChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      url: '',
+      topic: '',
+      resolution: '',
+      status: '',
+    });
+  };
+
+  const populateFormWithPlaylist = (playlist: PlaylistSchema) => {
+    setFormData({
+      name: playlist.name || '',
+      description: playlist.description || '',
+      url: playlist.url || '',
+      topic: playlist.topic || '',
+      resolution: playlist.resolution || '',
+      status: playlist.status || '',
+    });
+  };
 
   // Gestionnaire de changement de filtres
   const handleFiltersChange = useCallback((newFilters: PlaylistQueryParams) => {
@@ -95,15 +159,57 @@ const PlaylistsPage: React.FC = () => {
 
   const handleEdit = useCallback((playlist: PlaylistSchema) => {
     console.log('Edit playlist:', playlist.name || playlist.id);
+    setEditingPlaylist(playlist);
     setSelectedPlaylist(playlist);
-    
-    // For now, show a prominent notification that edit was clicked
-    // TODO: Replace this with actual edit modal
-    const editMessage = `✏️ EDIT CLICKED!\n\nPlaylist: ${playlist.name || 'Unnamed'}\nID: ${playlist.id}\nStatus: ${playlist.status}\n\n(Edit modal not implemented yet)`;
-    alert(editMessage);
-    
-    // setIsEditModalOpen(true);
+    populateFormWithPlaylist(playlist);
+    setIsEditModalOpen(true);
   }, [setSelectedPlaylist]);
+
+  const handleEditPlaylist = async () => {
+    if (!editingPlaylist?.id) return;
+
+    setFormLoading(true);
+    try {
+      // Create complete playlist data object with all required fields
+      const playlistData: PlaylistSchema = {
+        ...editingPlaylist, // Start with existing playlist data
+        // Override with form data
+        name: formData.name,
+        description: formData.description || null,
+        url: formData.url,
+        topic: formData.topic || null,
+        resolution: formData.resolution || null,
+        status: formData.status || null,
+      };
+
+      const updatedPlaylist = await updatePlaylist(editingPlaylist.id, playlistData);
+      
+      if (updatedPlaylist) {
+        setIsEditModalOpen(false);
+        setEditingPlaylist(null);
+        resetForm();
+
+        addNotification({
+          type: 'success',
+          title: 'Playlist Updated',
+          message: `Playlist "${updatedPlaylist.name}" has been updated successfully.`,
+        });
+
+        // Recharger les données
+        fetchPlaylists();
+        fetchStatusCounts();
+      }
+    } catch (error) {
+      console.error('Failed to update playlist:', error);
+      addNotification({
+        type: 'error',
+        title: 'Update Failed',
+        message: 'Failed to update the playlist. Please try again.',
+      });
+    } finally {
+      setFormLoading(false);
+    }
+  };
 
   const handleDelete = useCallback((playlist: PlaylistSchema) => {
     setSelectedPlaylist(playlist);
@@ -268,6 +374,101 @@ const PlaylistsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingPlaylist(null);
+          resetForm();
+        }}
+        title="Edit Playlist"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <FormInput
+            label="Name"
+            value={formData.name}
+            onChange={(e) => handleFormChange('name', e.target.value)}
+            required
+          />
+
+          <FormTextarea
+            label="Description"
+            value={formData.description}
+            onChange={(e) => handleFormChange('description', e.target.value)}
+            rows={3}
+            placeholder="Optional description..."
+          />
+
+          <FormInput
+            label="URL"
+            value={formData.url}
+            onChange={(e) => handleFormChange('url', e.target.value)}
+            placeholder="https://www.youtube.com/playlist?list=..."
+          />
+
+          <FormInput
+            label="Topic"
+            value={formData.topic}
+            onChange={(e) => handleFormChange('topic', e.target.value)}
+            placeholder="e.g. music, tech, education..."
+          />
+
+          <FormSelect
+            label="Resolution"
+            value={formData.resolution}
+            onChange={(e) => handleFormChange('resolution', e.target.value)}
+          >
+            <option value="">Select resolution</option>
+            {resolutionOptions.map((resolution) => (
+              <option key={resolution.value} value={resolution.value}>
+                {resolution.label}
+              </option>
+            ))}
+          </FormSelect>
+
+          <FormSelect
+            label="Status"
+            value={formData.status}
+            onChange={(e) => handleFormChange('status', e.target.value)}
+          >
+            <option value="">Select status</option>
+            {playlistStatusOptions.map((status) => (
+              <option key={status.value} value={status.value}>
+                {status.label}
+              </option>
+            ))}
+          </FormSelect>
+        </div>
+
+        <div className="flex justify-end space-x-3 mt-6">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setIsEditModalOpen(false);
+              setEditingPlaylist(null);
+              resetForm();
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleEditPlaylist}
+            disabled={formLoading || !formData.name}
+          >
+            {formLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Updating...
+              </>
+            ) : (
+              'Update Playlist'
+            )}
+          </Button>
+        </div>
+      </Modal>
     </Layout>
   );
 };
