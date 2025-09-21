@@ -83,23 +83,23 @@ export const PlaylistTable: React.FC<PlaylistTableProps> = ({
             <QueueListIcon className="h-5 w-5 text-gray-400" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+            <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
               <Tooltip content={name || 'Nom non défini'}>
                 {name || 'Nom non défini'}
               </Tooltip>
-            </p>
+            </div>
             {playlist.description && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+              <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
                 <Tooltip content={playlist.description}>
                   {playlist.description.length > 100 
                     ? `${playlist.description.substring(0, 100)}...` 
                     : playlist.description
                   }
                 </Tooltip>
-              </p>
+              </div>
             )}
             {playlist.url && (
-              <p className="text-xs text-blue-600 dark:text-blue-400 truncate">
+              <div className="text-xs text-blue-600 dark:text-blue-400 truncate">
                 <a 
                   href={playlist.url} 
                   target="_blank" 
@@ -113,7 +113,7 @@ export const PlaylistTable: React.FC<PlaylistTableProps> = ({
                     </div>
                   </Tooltip>
                 </a>
-              </p>
+              </div>
             )}
           </div>
         </div>
