@@ -9,6 +9,7 @@ import {
   Cog6ToothIcon,
   Bars3Icon,
   XMarkIcon,
+  MusicalNoteIcon,
 } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '@/stores';
@@ -20,11 +21,27 @@ interface NavigationItem {
   current?: boolean;
 }
 
-const navigation: NavigationItem[] = [
+interface NavigationSection {
+  title: string;
+  items: NavigationItem[];
+}
+
+const navigation: (NavigationItem | NavigationSection)[] = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Videos', href: '/videos', icon: PlayIcon },
-  { name: 'Channels', href: '/channels', icon: TvIcon },
-  { name: 'Playlists', href: '/playlists', icon: QueueListIcon },
+  {
+    title: 'Musique',
+    items: [
+      // Section musique sera ajoutée plus tard
+    ]
+  },
+  {
+    title: 'Video',
+    items: [
+      { name: 'Channels', href: '/channels', icon: TvIcon },
+      { name: 'Playlists', href: '/playlists', icon: QueueListIcon },
+      { name: 'Videos', href: '/videos', icon: PlayIcon },
+    ]
+  },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ];
 
@@ -36,11 +53,28 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
   const pathname = usePathname();
   const { collapsed, toggle, setCollapsed } = useSidebar();
 
-  // Update navigation current state based on current route
-  const navigationWithCurrent = navigation.map((item) => ({
-    ...item,
-    current: pathname === item.href,
-  }));
+  // Helper function to check if item is a NavigationSection
+  const isNavigationSection = (item: NavigationItem | NavigationSection): item is NavigationSection => {
+    return 'title' in item;
+  };
+
+  // Helper function to get all navigation items (flattened)
+  const getAllNavigationItems = () => {
+    const allItems: NavigationItem[] = [];
+    navigation.forEach(item => {
+      if (isNavigationSection(item)) {
+        allItems.push(...item.items);
+      } else {
+        allItems.push(item);
+      }
+    });
+    return allItems;
+  };
+
+  // Check if any item in a section is current
+  const isSectionCurrent = (section: NavigationSection) => {
+    return section.items.some(item => pathname === item.href);
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -85,15 +119,64 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 px-2 py-4">
-          {navigationWithCurrent.map((item) => {
+          {navigation.map((item, index) => {
+            // Handle section items
+            if (isNavigationSection(item)) {
+              // Don't render empty sections
+              if (item.items.length === 0) {
+                return null;
+              }
+              
+              return (
+                <div key={item.title} className="space-y-1">
+                  {!collapsed && (
+                    <div className="px-2 py-2">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                        {item.title}
+                      </h3>
+                    </div>
+                  )}
+                  {item.items.map((subItem) => {
+                    const Icon = subItem.icon;
+                    const isCurrentItem = pathname === subItem.href;
+                    return (
+                      <Link
+                        key={subItem.name}
+                        href={subItem.href}
+                        className={cn(
+                          "group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
+                          isCurrentItem
+                            ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
+                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                        )}
+                      >
+                        <Icon
+                          className={cn(
+                            "mr-3 h-6 w-6 flex-shrink-0 transition-colors",
+                            isCurrentItem
+                              ? "text-blue-500"
+                              : "text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
+                          )}
+                          aria-hidden="true"
+                        />
+                        {!collapsed && subItem.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+              );
+            }
+
+            // Handle regular navigation items
             const Icon = item.icon;
+            const isCurrentItem = pathname === item.href;
             return (
               <Link
                 key={item.name}
                 href={item.href}
                 className={cn(
                   "group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
-                  item.current
+                  isCurrentItem
                     ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 )}
@@ -101,7 +184,7 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
                 <Icon
                   className={cn(
                     "mr-3 h-6 w-6 flex-shrink-0 transition-colors",
-                    item.current
+                    isCurrentItem
                       ? "text-blue-500"
                       : "text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
                   )}
