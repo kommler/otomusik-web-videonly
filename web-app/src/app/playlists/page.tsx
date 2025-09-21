@@ -82,15 +82,19 @@ const PlaylistsPage: React.FC = () => {
 
   // Gestionnaires d'actions sur les playlists
   const handleView = useCallback((playlist: PlaylistSchema) => {
+    console.log('handleView called with:', playlist);
     setSelectedPlaylist(playlist);
+    // Temporary alert to confirm the button works
+    alert(`View button clicked for playlist: "${playlist.name || playlist.id}"`);
     // TODO: Implement view modal or navigate to detail page
-    console.log('View playlist:', playlist.name || playlist.id);
   }, [setSelectedPlaylist]);
 
   const handleEdit = useCallback((playlist: PlaylistSchema) => {
+    console.log('handleEdit called with:', playlist);
     setSelectedPlaylist(playlist);
+    // Temporary alert to confirm the button works
+    alert(`Edit button clicked for playlist: "${playlist.name || playlist.id}"`);
     // TODO: Implement edit modal
-    console.log('Edit playlist:', playlist.name || playlist.id);
     // setIsEditModalOpen(true);
   }, [setSelectedPlaylist]);
 
