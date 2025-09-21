@@ -28,12 +28,12 @@ interface NavigationSection {
 
 const navigation: (NavigationItem | NavigationSection)[] = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
-  {
-    title: 'Musique',
-    items: [
-      // Section musique sera ajoutée plus tard
-    ]
-  },
+  // {
+  //   title: 'Musique',
+  //   items: [
+  //     // Section musique sera ajoutée plus tard
+  //   ]
+  // },
   {
     title: 'Video',
     items: [
@@ -122,11 +122,6 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
           {navigation.map((item, index) => {
             // Handle section items
             if (isNavigationSection(item)) {
-              // Don't render empty sections
-              if (item.items.length === 0) {
-                return null;
-              }
-              
               return (
                 <div key={item.title} className="space-y-1">
                   {!collapsed && (
