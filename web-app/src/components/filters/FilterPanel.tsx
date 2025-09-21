@@ -222,7 +222,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = (props) => {
                   key={status.value}
                   onClick={() => handleStatusToggle(status.value)}
                   className={cn(
-                    "px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center space-x-1 hover:opacity-80",
+                    "px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center space-x-1 hover:opacity-80 cursor-pointer",
                     isActive
                       ? colors.active  // Fond coloré complet quand sélectionné
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"  // Fond neutre quand non sélectionné

@@ -221,7 +221,7 @@ export const PlaylistFilterPanel: React.FC<PlaylistFilterPanelProps> = ({
                     onClick={() => handleStatusChange(status.value)}
                     disabled={loading}
                     className={cn(
-                      'px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center space-x-1 hover:opacity-80',
+                      'px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center space-x-1 hover:opacity-80 cursor-pointer',
                       'disabled:opacity-50 disabled:cursor-not-allowed',
                       isSelected
                         ? colors.active  // Fond coloré complet quand sélectionné

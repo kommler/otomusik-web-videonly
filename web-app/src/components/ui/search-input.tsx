@@ -87,12 +87,13 @@ export const SearchInput: React.FC<SearchInputProps> = ({
           <button
             type="button"
             onClick={handleClear}
-            className="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition-colors cursor-pointer"
           >
             <span className="sr-only">Clear search</span>
             <XMarkIcon 
               className={cn(
-                size === 'sm' ? 'h-4 w-4' : size === 'lg' ? 'h-6 w-6' : 'h-5 w-5'
+                size === 'sm' ? 'h-4 w-4' : size === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
+                "cursor-pointer"
               )} 
               aria-hidden="true" 
             />

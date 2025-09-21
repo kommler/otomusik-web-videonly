@@ -61,13 +61,13 @@ export function DataTable<T extends Record<string, any>>({
 
   const renderSortIcon = (columnKey: string) => {
     if (sortKey !== columnKey) {
-      return <FunnelIcon className="h-4 w-4 text-gray-400" />;
+      return <FunnelIcon className="h-4 w-4 text-gray-400 cursor-pointer" />;
     }
     
     return sortDirection === 'asc' ? (
-      <ChevronUpIcon className="h-4 w-4 text-blue-500" />
+      <ChevronUpIcon className="h-4 w-4 text-blue-500 cursor-pointer" />
     ) : (
-      <ChevronDownIcon className="h-4 w-4 text-blue-500" />
+      <ChevronDownIcon className="h-4 w-4 text-blue-500 cursor-pointer" />
     );
   };
 
@@ -98,9 +98,10 @@ export function DataTable<T extends Record<string, any>>({
                   e.stopPropagation();
                   onView(row);
                 }}
-                className="h-8 w-8"
+                className="h-8 w-8 hover:bg-blue-50 hover:text-blue-600 cursor-pointer"
+                title="View details"
               >
-                <EyeIcon className="h-4 w-4" />
+                <EyeIcon className="h-4 w-4 cursor-pointer" />
                 <span className="sr-only">View</span>
               </Button>
             )}
@@ -112,9 +113,10 @@ export function DataTable<T extends Record<string, any>>({
                   e.stopPropagation();
                   onEdit(row);
                 }}
-                className="h-8 w-8"
+                className="h-8 w-8 hover:bg-yellow-50 hover:text-yellow-600 border border-transparent hover:border-yellow-200 cursor-pointer transition-all duration-200 hover:shadow-sm"
+                title="Edit"
               >
-                <PencilIcon className="h-4 w-4" />
+                <PencilIcon className="h-4 w-4 cursor-pointer text-yellow-600" />
                 <span className="sr-only">Edit</span>
               </Button>
             )}
@@ -126,9 +128,10 @@ export function DataTable<T extends Record<string, any>>({
                   e.stopPropagation();
                   onDelete(row);
                 }}
-                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                title="Delete"
               >
-                <TrashIcon className="h-4 w-4" />
+                <TrashIcon className="h-4 w-4 cursor-pointer" />
                 <span className="sr-only">Delete</span>
               </Button>
             )}
