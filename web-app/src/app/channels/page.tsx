@@ -300,6 +300,19 @@ export default function ChannelsPage() {
           </div>
         ) : (
           <>
+            {/* Top Pagination */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalRecords={totalCount}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                className="mb-4"
+              />
+            )}
+            
             <ChannelTable
               channels={channels}
               loading={loading}
@@ -310,7 +323,7 @@ export default function ChannelsPage() {
               onDelete={handleDeleteChannel}
             />
 
-            {/* Pagination */}
+            {/* Bottom Pagination */}
             {totalPages > 1 && (
               <Pagination
                 currentPage={currentPage}

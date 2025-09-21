@@ -325,6 +325,19 @@ export default function VideosPage() {
           </div>
         ) : (
           <>
+            {/* Top Pagination */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalRecords={totalCount}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                className="mb-4"
+              />
+            )}
+            
             <VideoTable
               videos={videos}
               loading={loading}
@@ -336,7 +349,7 @@ export default function VideosPage() {
               onStatusChange={handleStatusChange}
             />
 
-            {/* Pagination */}
+            {/* Bottom Pagination */}
             {totalPages > 1 && (
               <Pagination
                 currentPage={currentPage}
