@@ -11,14 +11,6 @@ import { PlaylistSchema, PlaylistQueryParams } from '../../types/api';
 
 // Configuration des filtres spécifiques aux playlists
 const playlistFilterConfig = {
-  statusOptions: [
-    { value: 'ACTIVE', label: 'Active', color: 'green' },
-    { value: 'INACTIVE', label: 'Inactive', color: 'red' },
-    { value: 'PENDING', label: 'En attente', color: 'yellow' },
-    { value: 'ERROR', label: 'Erreur', color: 'red' },
-    { value: 'COMPLETED', label: 'Terminé', color: 'blue' },
-    { value: 'PROCESSING', label: 'En cours', color: 'orange' },
-  ],
   sortOptions: [
     { value: 'name', label: 'Nom' },
     { value: 'status', label: 'Statut' },
@@ -193,10 +185,9 @@ const PlaylistsPage: React.FC = () => {
 
         {/* Panel de filtres */}
         <PlaylistFilterPanel
-          entityType="playlist"
+          entityType="playlists"
           filters={filters}
           statusCounts={statusCounts}
-          statusOptions={playlistFilterConfig.statusOptions}
           sortOptions={playlistFilterConfig.sortOptions}
           onFiltersChange={handleFiltersChange}
           loading={loading}

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { 
   FunnelIcon, 
   XMarkIcon, 
@@ -17,31 +17,30 @@ import { cn } from '../../lib/utils';
 // Status color mappings pour playlists
 const getPlaylistStatusColors = (status: string) => {
   switch (status.toLowerCase()) {
-    case 'active':
+    case 'downloaded':
       return {
         normal: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
         active: 'bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100',
         count: 'bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100'
       };
-    case 'pending':
-    case 'processing':
+    case 'downloading':
+    case 'current':
+      return {
+        normal: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+        active: 'bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100',
+        count: 'bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100'
+      };
+    case 'analyzed':
       return {
         normal: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
         active: 'bg-yellow-200 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100',
         count: 'bg-yellow-200 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100'
       };
-    case 'error':
-    case 'inactive':
+    case 'failed':
       return {
         normal: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
         active: 'bg-red-200 text-red-900 dark:bg-red-800 dark:text-red-100',
         count: 'bg-red-200 text-red-900 dark:bg-red-800 dark:text-red-100'
-      };
-    case 'completed':
-      return {
-        normal: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-        active: 'bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100',
-        count: 'bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100'
       };
     default:
       return {
@@ -67,7 +66,6 @@ interface PlaylistFilterPanelProps {
   entityType: string;
   filters: PlaylistQueryParams;
   statusCounts?: Record<string, number>;
-  statusOptions: StatusOption[];
   sortOptions: SortOption[];
   onFiltersChange: (filters: PlaylistQueryParams) => void;
   loading?: boolean;
@@ -79,7 +77,6 @@ export const PlaylistFilterPanel: React.FC<PlaylistFilterPanelProps> = ({
   entityType,
   filters,
   statusCounts = {},
-  statusOptions,
   sortOptions,
   onFiltersChange,
   loading = false,
@@ -88,6 +85,18 @@ export const PlaylistFilterPanel: React.FC<PlaylistFilterPanelProps> = ({
 }) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [tempFilters, setTempFilters] = useState<PlaylistQueryParams>(filters);
+
+  // Génère dynamiquement les options de statut depuis statusCounts
+  const statusOptions = useMemo(() => {
+    return Object.keys(statusCounts)
+      .filter(status => statusCounts[status] > 0) // Ne montre que les statuts avec des données
+      .map(status => ({
+        value: status,
+        label: status.charAt(0).toUpperCase() + status.slice(1).toLowerCase(),
+        color: getPlaylistStatusColors(status).normal
+      }))
+      .sort((a, b) => statusCounts[b.value] - statusCounts[a.value]); // Trie par nombre décroissant
+  }, [statusCounts]);
 
   // Comptage des filtres actifs
   const activeFiltersCount = Object.entries(filters).reduce((count, [key, value]) => {
@@ -201,29 +210,32 @@ export const PlaylistFilterPanel: React.FC<PlaylistFilterPanelProps> = ({
               Statut
             </label>
             <div className="flex flex-wrap gap-2">
-              {statusOptions.map((option) => {
-                const isActive = filters.status?.includes(option.value);
-                const count = statusCounts[option.value] || 0;
-                const colors = getPlaylistStatusColors(option.value);
-
+              {statusOptions.map((status) => {
+                const isSelected = (filters.status || []).includes(status.value);
+                const colors = getPlaylistStatusColors(status.value);
+                const count = statusCounts[status.value] || 0;
+                
                 return (
                   <button
-                    key={option.value}
-                    onClick={() => handleStatusChange(option.value)}
+                    key={status.value}
+                    onClick={() => handleStatusChange(status.value)}
                     disabled={loading}
                     className={cn(
-                      "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border transition-all duration-200",
-                      "hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
-                      "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100",
-                      isActive ? colors.active : colors.normal
+                      'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium border transition-colors',
+                      'hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed',
+                      isSelected
+                        ? colors.active  // Fond coloré complet quand sélectionné
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 border-gray-200 dark:border-gray-600'  // Fond neutre quand non sélectionné
                     )}
                   >
-                    {option.label}
+                    {status.label}
                     <span className={cn(
-                      "ml-1.5 px-1.5 py-0.5 rounded text-xs font-medium",
-                      isActive ? colors.count : colors.normal
+                      'ml-1.5 px-1.5 py-0.5 rounded-full text-xs font-medium',
+                      isSelected 
+                        ? colors.count  // Fond coloré pour le compteur quand sélectionné
+                        : colors.normal  // Fond coloré selon le statut quand non sélectionné
                     )}>
-                      {count}
+                      {count.toLocaleString()}
                     </span>
                   </button>
                 );
