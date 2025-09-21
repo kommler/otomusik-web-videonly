@@ -67,6 +67,32 @@ export interface ChannelSchema {
 
 export interface ChannelUpdateSchema extends ChannelSchema {}
 
+export interface PlaylistSchema {
+  id?: number | null;
+  url?: string | null;
+  topic?: string | null;
+  resolution?: string | null;
+  status?: string | null;
+  name?: string | null;
+  inserted_at?: string | null; // ISO date-time string
+  updated_at?: string | null; // ISO date-time string
+  current_index?: number | null;
+  total_index?: number | null;
+  channel_name?: string | null;
+  errors?: Record<string, any> | null;
+  downloaded_at?: string | null; // ISO date-time string
+  channel_extracted_at?: string | null; // ISO date-time string
+  channel_follower_count?: number | null;
+  channel_id?: string | null;
+  channel_slug?: string | null;
+  channel_url?: string | null;
+  description?: string | null;
+  playlist_count?: number | null;
+  playlist_id?: string | null;
+}
+
+export interface PlaylistUpdateSchema extends PlaylistSchema {}
+
 export interface ValidationError {
   loc: (string | number)[];
   msg: string;
@@ -196,4 +222,46 @@ export interface ChannelQueryParams {
   refresh_interval_days__eq?: number;
   scraped_at__eq?: string;
   scraped_at__isnull?: boolean;
+}
+
+export interface PlaylistQueryParams {
+  status?: string[];
+  search?: string;
+  limit?: number;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+  id__eq?: number;
+  url__ilike?: string;
+  url?: string;
+  topic__ilike?: string;
+  topic?: string;
+  resolution__ilike?: string;
+  resolution?: string;
+  status__ilike?: string;
+  name__ilike?: string;
+  name?: string;
+  inserted_at__eq?: string;
+  inserted_at__isnull?: boolean;
+  updated_at__eq?: string;
+  updated_at__isnull?: boolean;
+  current_index__eq?: number;
+  total_index__eq?: number;
+  channel_name__ilike?: string;
+  channel_name?: string;
+  downloaded_at__eq?: string;
+  downloaded_at__isnull?: boolean;
+  channel_extracted_at__eq?: string;
+  channel_extracted_at__isnull?: boolean;
+  channel_follower_count__eq?: number;
+  channel_id__ilike?: string;
+  channel_id?: string;
+  channel_slug__ilike?: string;
+  channel_slug?: string;
+  channel_url__ilike?: string;
+  channel_url?: string;
+  description__ilike?: string;
+  description?: string;
+  playlist_count__eq?: number;
+  playlist_id__ilike?: string;
+  playlist_id?: string;
 }

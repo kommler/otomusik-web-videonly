@@ -2,3 +2,4 @@
 export { DataTable } from '../ui/data-table';
 export { VideoTable } from './VideoTable';
 export { ChannelTable } from './ChannelTable';
+export { PlaylistTable } from './PlaylistTable';

@@ -5,6 +5,7 @@ import {
   HomeIcon,
   PlayIcon,
   TvIcon,
+  QueueListIcon,
   Cog6ToothIcon,
   Bars3Icon,
   XMarkIcon,
@@ -23,6 +24,7 @@ const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Videos', href: '/videos', icon: PlayIcon },
   { name: 'Channels', href: '/channels', icon: TvIcon },
+  { name: 'Playlists', href: '/playlists', icon: QueueListIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ];
 
