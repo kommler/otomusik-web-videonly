@@ -60,12 +60,6 @@ export const PlaylistTable: React.FC<PlaylistTableProps> = ({
   onDelete,
   onRowClick,
 }) => {
-  // Debug: Check if handlers are received
-  console.log('PlaylistTable handlers:', { 
-    hasOnEdit: typeof onEdit === 'function',
-    hasOnView: typeof onView === 'function',
-    hasOnDelete: typeof onDelete === 'function'
-  });
   const columns = [
     {
       key: 'id',

@@ -82,19 +82,26 @@ const PlaylistsPage: React.FC = () => {
 
   // Gestionnaires d'actions sur les playlists
   const handleView = useCallback((playlist: PlaylistSchema) => {
-    console.log('handleView called with:', playlist);
+    console.log('View playlist:', playlist.name || playlist.id);
     setSelectedPlaylist(playlist);
-    // Temporary alert to confirm the button works
-    alert(`View button clicked for playlist: "${playlist.name || playlist.id}"`);
+    
+    // For now, show a prominent notification that view was clicked
+    // TODO: Replace this with actual view modal
+    const viewMessage = `👁️ VIEW CLICKED!\n\nPlaylist: ${playlist.name || 'Unnamed'}\nID: ${playlist.id}\nDescription: ${playlist.description || 'No description'}\n\n(View modal not implemented yet)`;
+    alert(viewMessage);
+    
     // TODO: Implement view modal or navigate to detail page
   }, [setSelectedPlaylist]);
 
   const handleEdit = useCallback((playlist: PlaylistSchema) => {
-    console.log('handleEdit called with:', playlist);
+    console.log('Edit playlist:', playlist.name || playlist.id);
     setSelectedPlaylist(playlist);
-    // Temporary alert to confirm the button works
-    alert(`Edit button clicked for playlist: "${playlist.name || playlist.id}"`);
-    // TODO: Implement edit modal
+    
+    // For now, show a prominent notification that edit was clicked
+    // TODO: Replace this with actual edit modal
+    const editMessage = `✏️ EDIT CLICKED!\n\nPlaylist: ${playlist.name || 'Unnamed'}\nID: ${playlist.id}\nStatus: ${playlist.status}\n\n(Edit modal not implemented yet)`;
+    alert(editMessage);
+    
     // setIsEditModalOpen(true);
   }, [setSelectedPlaylist]);
 
