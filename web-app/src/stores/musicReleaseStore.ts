@@ -96,7 +96,7 @@ export const useMusicReleaseStore = create<MusicReleaseState>()(
         const startIndex = (currentPage - 1) * pageSize;
         const endIndex = startIndex + pageSize;
         const paginatedReleases = allReleases.slice(startIndex, endIndex);
-        set({ releases: paginatedReleases, totalCount: allReleases.length });
+        set({ releases: paginatedReleases });
       },
 
       // API Actions
@@ -107,7 +107,9 @@ export const useMusicReleaseStore = create<MusicReleaseState>()(
           // Fetch all records (no limit) so we can paginate client-side
           const queryParams = { ...state.filters, ...params, limit: undefined } as any;
           const allReleases = await musicReleaseApi.list(queryParams);
-          set({ allReleases, loading: false });
+          // Filter out any null releases to prevent runtime errors
+          const filteredReleases = allReleases.filter(release => release !== null);
+          set({ allReleases: filteredReleases, loading: false });
 
           // Update pagination client-side
           get().updatePaginatedReleases();
