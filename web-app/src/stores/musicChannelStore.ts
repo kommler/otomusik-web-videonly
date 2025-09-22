@@ -9,6 +9,7 @@ interface MusicChannelState {
   selectedChannel: MusicChannelSchema | null;
   totalChannels: number;
   statusCounts: StatusCount[];
+  statusCountsRecord: Record<string, number>; // Format pour les composants de filtre
   
   // Loading states
   loading: boolean;
@@ -19,17 +20,14 @@ interface MusicChannelState {
   // Error handling
   error: string | null;
   
-  // Filter and sort state - match the pattern used by other stores/pages
-  searchTerm: string;
-  statusFilter: string | null;
-  sortKey: string | null;
-  sortDirection: 'asc' | 'desc';
+  // Filters and pagination
+  filters: MusicChannelQueryParams;
+  currentPage: number;
+  pageSize: number;
   
   // Actions
-  setSearchTerm: (term: string) => void;
-  setStatusFilter: (status: string | null) => void;
-  setSortKey: (key: string | null) => void;
-  setSortDirection: (direction: 'asc' | 'desc') => void;
+  setFilters: (filters: MusicChannelQueryParams) => void;
+  setCurrentPage: (page: number) => void;
   
   // API Actions
   fetchChannels: (params?: MusicChannelQueryParams) => Promise<void>;
@@ -42,20 +40,26 @@ interface MusicChannelState {
   reset: () => void;
 }
 
+const initialFilters: MusicChannelQueryParams = {
+  limit: 50,
+  sort_by: 'updated_at',
+  sort_order: 'desc',
+};
+
 const initialState = {
   channels: [],
   selectedChannel: null,
   totalChannels: 0,
   statusCounts: [],
+  statusCountsRecord: {},
   loading: false,
   creating: false,
   updating: false,
   deleting: false,
   error: null,
-  searchTerm: '',
-  statusFilter: null,
-  sortKey: 'updated_at',
-  sortDirection: 'desc' as 'desc',
+  filters: initialFilters,
+  currentPage: 1,
+  pageSize: 50,
 };
 
 export const useMusicChannelStore = create<MusicChannelState>()(
@@ -63,22 +67,17 @@ export const useMusicChannelStore = create<MusicChannelState>()(
     (set, get) => ({
       ...initialState,
       
-      // Filter and sort actions
-      setSearchTerm: (term) => set({ searchTerm: term }),
-      setStatusFilter: (status) => set({ statusFilter: status }),
-      setSortKey: (key) => set({ sortKey: key }),
-      setSortDirection: (direction) => set({ sortDirection: direction }),
+      // Filter and pagination actions
+      setFilters: (filters) => set({ filters, currentPage: 1 }), // Reset page when filters change
+      setCurrentPage: (page) => set({ currentPage: page }),
       
       // API Actions
       fetchChannels: async (params) => {
         set({ loading: true, error: null });
         try {
+          const currentState = get();
           const queryParams: MusicChannelQueryParams = {
-            search: params?.search,
-            limit: params?.limit || 50,
-            sort_by: params?.sort_by || 'updated_at',
-            sort_order: params?.sort_order || 'desc',
-            status__ilike: params?.status ? `%${params.status}%` : undefined,
+            ...currentState.filters,
             ...params,
           };
           
@@ -86,8 +85,8 @@ export const useMusicChannelStore = create<MusicChannelState>()(
           const [channelsResult, countsResult] = await Promise.all([
             musicChannelApi.list(queryParams),
             musicChannelApi.count({
-              search: params?.search,
-              status__ilike: params?.status ? `%${params.status}%` : undefined,
+              search: queryParams.search,
+              status: queryParams.status,
             }),
           ]);
           
@@ -98,10 +97,12 @@ export const useMusicChannelStore = create<MusicChannelState>()(
           
           // Convert status counts
           const statusCounts: StatusCount[] = [];
+          const statusCountsRecord: Record<string, number> = {};
           if (typeof countsResult === 'object' && countsResult !== null) {
             Object.entries(countsResult).forEach(([key, value]) => {
               if (key !== 'count' && typeof value === 'number') {
                 statusCounts.push({ status: key, count: value });
+                statusCountsRecord[key] = value;
               }
             });
           }
@@ -109,7 +110,8 @@ export const useMusicChannelStore = create<MusicChannelState>()(
           set({ 
             channels, 
             totalChannels, 
-            statusCounts, 
+            statusCounts,
+            statusCountsRecord, 
             loading: false 
           });
         } catch (error) {

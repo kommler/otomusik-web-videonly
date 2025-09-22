@@ -3,103 +3,67 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { MusicChannelTable } from '@/components/tables';
+import { MusicChannelFilterPanel } from '@/components/filters/MusicChannelFilterPanel';
 import { useMusicChannelStore } from '@/stores';
-import { MusicChannel, StatusCount } from '@/types/api';
-import { SearchInput } from '@/components/ui/search-input';
+import { MusicChannel, MusicChannelQueryParams } from '@/types/api';
 import { Pagination } from '@/components/ui/pagination';
 
 const ITEMS_PER_PAGE = 25;
 
-// Simple filter component for music channels
-const MusicChannelFilters = ({ 
-  statusFilter, 
-  onStatusFilterChange, 
-  statusFilters, 
-  loading 
-}: {
-  statusFilter: string | null;
-  onStatusFilterChange: (status: string | null) => void;
-  statusFilters: { value: string; label: string; count: number; }[];
-  loading: boolean;
-}) => (
-  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-    <div className="flex items-center gap-4">
-      <label htmlFor="status-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-        Status:
-      </label>
-      <select
-        id="status-filter"
-        value={statusFilter || ''}
-        onChange={(e) => onStatusFilterChange(e.target.value || null)}
-        disabled={loading}
-        className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500"
-      >
-        <option value="">All statuses</option>
-        {statusFilters.map((status) => (
-          <option key={status.value} value={status.value}>
-            {status.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  </div>
-);
+// Configuration des filtres spécifiques aux music channels
+const musicChannelFilterConfig = {
+  sortOptions: [
+    { value: 'channel_name', label: 'Nom du canal' },
+    { value: 'uploader', label: 'Uploader' },
+    { value: 'count_playlist', label: 'Nombre de playlists' },
+    { value: 'status', label: 'Statut' },
+    { value: 'inserted_at', label: 'Date de création' },
+    { value: 'updated_at', label: 'Dernière modification' },
+    { value: 'scraped_at', label: 'Dernière extraction' },
+  ],
+};
 
 export default function MusicChannelsPage() {
   const {
     channels,
     totalChannels,
-    statusCounts,
+    statusCountsRecord,
     loading,
     error,
-    sortKey,
-    sortDirection,
-    searchTerm,
-    statusFilter,
-    setSearchTerm,
-    setStatusFilter,
+    filters,
+    currentPage,
+    pageSize,
+    setFilters,
+    setCurrentPage,
     fetchChannels,
-    setSortKey,
-    setSortDirection,
     deleteChannel,
   } = useMusicChannelStore();
 
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // Fetch channels on mount and when dependencies change
+  // Charger les données initiales
   useEffect(() => {
-    const fetchData = async () => {
-      await fetchChannels({
-        search: searchTerm || undefined,
-        status: statusFilter ? [statusFilter] : undefined,
-        sort_by: sortKey || 'updated_at',
-        sort_order: sortDirection,
-        limit: ITEMS_PER_PAGE,
-      });
-    };
-    
-    fetchData();
-  }, [
-    currentPage,
-    searchTerm,
-    statusFilter,
-    sortKey,
-    sortDirection,
-    fetchChannels,
-  ]);
+    fetchChannels();
+  }, [fetchChannels]);
 
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, statusFilter]);
+  // Gestion des changements de filtres
+  const handleFiltersChange = (newFilters: MusicChannelQueryParams) => {
+    setFilters(newFilters);
+    fetchChannels(newFilters);
+  };
+
+  // Gestion des changements de page
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    const offset = (page - 1) * pageSize;
+    fetchChannels({ ...filters, limit: pageSize });
+  };
 
   const handleSort = (key: string) => {
-    if (sortKey === key) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortKey(key as any);
-      setSortDirection('asc');
-    }
+    const newSortOrder = (filters.sort_by === key && filters.sort_order === 'asc') ? 'desc' : 'asc';
+    handleFiltersChange({
+      ...filters,
+      sort_by: key,
+      sort_order: newSortOrder,
+    });
   };
 
   const handleView = (channel: MusicChannel) => {
@@ -115,17 +79,11 @@ export default function MusicChannelsPage() {
   const handleDelete = async (channel: MusicChannel) => {
     if (!channel.id) return;
     
-    if (confirm(`Are you sure you want to delete the music channel "${channel.channel_name}"?`)) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer le canal musical "${channel.channel_name}" ?`)) {
       try {
         await deleteChannel(channel.id);
         // Refresh current page data
-        await fetchChannels({
-          search: searchTerm || undefined,
-          status: statusFilter ? [statusFilter] : undefined,
-          sort_by: sortKey || 'updated_at',
-          sort_order: sortDirection,
-          limit: ITEMS_PER_PAGE,
-        });
+        fetchChannels(filters);
       } catch (error) {
         console.error('Error deleting music channel:', error);
       }
@@ -136,33 +94,24 @@ export default function MusicChannelsPage() {
     handleView(channel);
   };
 
-  const totalPages = Math.ceil(totalChannels / ITEMS_PER_PAGE);
-
-  // Generate dynamic status filters from counts
-  const statusFilters = useMemo(() => {
-    if (!statusCounts || statusCounts.length === 0) return [];
-    
-    return statusCounts.map((statusCount: StatusCount) => ({
-      value: statusCount.status || '',
-      label: `${statusCount.status || 'Unknown'} (${statusCount.count})`,
-      count: statusCount.count,
-    }));
-  }, [statusCounts]);
+  const totalPages = Math.ceil(totalChannels / pageSize);
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-red-600 dark:text-red-400 mb-2">Error loading music channels</p>
-          <p className="text-gray-500 dark:text-gray-400">{error}</p>
-          <button 
-            onClick={() => fetchChannels()} 
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Retry
-          </button>
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-red-600 dark:text-red-400 mb-2">Erreur lors du chargement des canaux musicaux</p>
+            <p className="text-gray-500 dark:text-gray-400">{error}</p>
+            <button 
+              onClick={() => fetchChannels()} 
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Réessayer
+            </button>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
@@ -172,42 +121,50 @@ export default function MusicChannelsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Music Channels
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Gestion des Canaux Musicaux
             </h1>
-            <p className="text-gray-500 dark:text-gray-400">
-              Manage and monitor music channels ({totalChannels} total)
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              {totalChannels > 0 
+                ? `${totalChannels} canal${totalChannels > 1 ? 'aux' : ''} musical${totalChannels > 1 ? 'aux' : ''} trouvé${totalChannels > 1 ? 's' : ''}` 
+                : 'Aucun canal musical trouvé'
+              }
             </p>
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1">
-            <SearchInput
-              value={searchTerm}
-              onChange={setSearchTerm}
-              placeholder="Search music channels by name, uploader..."
-            />
-          </div>
-          <div className="lg:w-80">
-            <MusicChannelFilters
-              statusFilter={statusFilter}
-              onStatusFilterChange={setStatusFilter}
-              statusFilters={statusFilters}
-              loading={loading}
-            />
-          </div>
-        </div>
+        {/* Panel de filtres */}
+        <MusicChannelFilterPanel
+          entityType="canaux musicaux"
+          filters={filters}
+          statusCounts={statusCountsRecord}
+          sortOptions={musicChannelFilterConfig.sortOptions}
+          onFiltersChange={handleFiltersChange}
+          loading={loading}
+          totalCount={totalChannels}
+        />
 
-        {/* Table */}
+        {/* Contrôles de pagination (haut) */}
+        {totalPages > 1 && (
+          <div className="flex justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalRecords={totalChannels}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
+
+        {/* Table des canaux musicaux */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
           <MusicChannelTable
             channels={channels}
             loading={loading}
             onSort={handleSort}
-            sortKey={sortKey || undefined}
-            sortDirection={sortDirection}
+            sortKey={filters.sort_by}
+            sortDirection={filters.sort_order}
             onRowClick={handleRowClick}
             onView={handleView}
             onEdit={handleEdit}
@@ -215,15 +172,15 @@ export default function MusicChannelsPage() {
           />
         </div>
 
-        {/* Pagination */}
+        {/* Contrôles de pagination (bas) */}
         {totalPages > 1 && (
           <div className="flex justify-center">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
               totalRecords={totalChannels}
-              pageSize={ITEMS_PER_PAGE}
-              onPageChange={setCurrentPage}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
             />
           </div>
         )}
