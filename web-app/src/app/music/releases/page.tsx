@@ -300,16 +300,6 @@ export default function MusicReleasesPage() {
             entityType="releases musicales"
             filters={filters}
             statusCounts={statusCounts}
-            sortOptions={[
-              { value: 'title', label: 'Titre' },
-              { value: 'uploader', label: 'Artiste' },
-              { value: 'status', label: 'Statut' },
-              { value: 'priority', label: 'Priorité' },
-              { value: 'playlist_name', label: 'Playlist' },
-              { value: 'channel_name', label: 'Canal' },
-              { value: 'inserted_at', label: 'Date de création' },
-              { value: 'downloaded_at', label: 'Date de téléchargement' },
-            ]}
             onFiltersChange={setFilters}
             loading={loading}
             totalCount={totalCount}

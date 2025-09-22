@@ -48,7 +48,6 @@ interface MusicReleaseFilterPanelProps {
   entityType: string;
   filters: MusicReleaseQueryParams;
   statusCounts: Record<string, number>;
-  sortOptions: Array<{ value: string; label: string }>;
   onFiltersChange: (filters: MusicReleaseQueryParams) => void;
   loading?: boolean;
   totalCount?: number;
@@ -58,7 +57,6 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
   entityType,
   filters,
   statusCounts,
-  sortOptions,
   onFiltersChange,
   loading = false,
   totalCount = 0,
@@ -97,15 +95,6 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
     }
 
     onFiltersChange(newFilters);
-  }, [filters, onFiltersChange]);
-
-  const handleSortChange = useCallback((sortBy: string) => {
-    const newSortOrder = (filters.sort_by === sortBy && filters.sort_order === 'asc') ? 'desc' : 'asc';
-    onFiltersChange({
-      ...filters,
-      sort_by: sortBy,
-      sort_order: newSortOrder,
-    });
   }, [filters, onFiltersChange]);
 
   const clearFilters = useCallback(() => {
@@ -207,58 +196,6 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
               <span className="ml-1">enregistrements</span>
             </div>
           )}
-        </div>
-
-        {/* Sorting and active filters summary */}
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Trier par
-            </label>
-            <select
-              value={`${filters.sort_by || 'inserted_at'}_${filters.sort_order || 'desc'}`}
-              onChange={(e) => {
-                const [sortBy] = e.target.value.split('_');
-                handleSortChange(sortBy);
-              }}
-              disabled={loading}
-              className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            >
-              {sortOptions.map((option) => (
-                <React.Fragment key={option.value}>
-                  <option value={`${option.value}_asc`}>
-                    {option.label} ↑
-                  </option>
-                  <option value={`${option.value}_desc`}>
-                    {option.label} ↓
-                  </option>
-                </React.Fragment>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Filtres actifs
-            </label>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              {activeFiltersCount === 0 ? (
-                <span className="text-gray-400">Aucun filtre actif</span>
-              ) : (
-                <div className="space-y-1">
-                      {filters.title__ilike && (
-                        <div>Recherche: "{filters.title__ilike}"</div>
-                      )}
-                      {Array.isArray(filters.status) && filters.status.length > 0 && (
-                        <div>Statut: {filters.status.join(', ')}</div>
-                      )}
-                      {filters.status && !Array.isArray(filters.status) && (
-                        <div>Statut: {filters.status}</div>
-                      )}
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </div>
     </div>
