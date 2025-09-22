@@ -114,17 +114,18 @@ export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
       key: 'title',
       title: 'Titre',
       sortable: true,
-      render: (release: ReleaseSchema) => (
+      // DataTable calls render(value, row, index) — we want the full row
+      render: (_value: any, release?: ReleaseSchema | null) => (
         <div className="flex items-center space-x-3">
           <div className="flex-shrink-0">
             <PlayIcon className="h-5 w-5 text-gray-400" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-              {release.title || 'Sans titre'}
+              {release?.title || 'Sans titre'}
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-              {release.uploader || 'Artiste inconnu'}
+              {release?.uploader || 'Artiste inconnu'}
             </p>
           </div>
         </div>
@@ -134,11 +135,11 @@ export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
       key: 'status',
       title: 'Statut',
       sortable: true,
-      render: (release: ReleaseSchema) => (
+      render: (_value: any, release?: ReleaseSchema | null) => (
         <StatusBadge
-          status={release.status}
-          errors={release.errors}
-          release={release}
+          status={release?.status}
+          errors={release?.errors}
+          release={release ?? undefined}
           onStatusChange={onStatusChange}
         />
       ),
@@ -147,17 +148,17 @@ export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
       key: 'priority',
       title: 'Priorité',
       sortable: true,
-      render: (release: ReleaseSchema) => (
-        <PriorityBadge priority={release.priority} />
+      render: (_value: any, release?: ReleaseSchema | null) => (
+        <PriorityBadge priority={release?.priority ?? null} />
       ),
     },
     {
       key: 'playlist_name',
       title: 'Playlist',
       sortable: true,
-      render: (release: ReleaseSchema) => (
+      render: (_value: any, release?: ReleaseSchema | null) => (
         <div className="text-sm text-gray-900 dark:text-white">
-          {release.playlist_name || '-'}
+          {release?.playlist_name || '-'}
         </div>
       ),
     },
@@ -165,9 +166,9 @@ export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
       key: 'channel_name',
       title: 'Canal',
       sortable: true,
-      render: (release: ReleaseSchema) => (
+      render: (_value: any, release?: ReleaseSchema | null) => (
         <div className="text-sm text-gray-900 dark:text-white">
-          {release.channel_name || '-'}
+          {release?.channel_name || '-'}
         </div>
       ),
     },
@@ -175,11 +176,11 @@ export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
       key: 'current_index',
       title: 'Progression',
       sortable: true,
-      render: (release: ReleaseSchema) => (
+      render: (_value: any, release?: ReleaseSchema | null) => (
         <div className="text-sm text-gray-900 dark:text-white">
-          {release.current_index !== null && release.total_index !== null
+          {release && release.current_index !== null && release.total_index !== null
             ? `${release.current_index}/${release.total_index}`
-            : release.current_index !== null
+            : release && release.current_index !== null
             ? `${release.current_index}`
             : '-'
           }
@@ -190,9 +191,9 @@ export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
       key: 'inserted_at',
       title: 'Créé',
       sortable: true,
-      render: (release: ReleaseSchema) => (
+      render: (_value: any, release?: ReleaseSchema | null) => (
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          {release.inserted_at ? (
+          {release?.inserted_at ? (
             <Tooltip content={new Date(release.inserted_at).toLocaleString()}>
               <span>{formatDistanceToNow(new Date(release.inserted_at), { addSuffix: true })}</span>
             </Tooltip>
@@ -206,9 +207,9 @@ export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
       key: 'downloaded_at',
       title: 'Téléchargé',
       sortable: true,
-      render: (release: ReleaseSchema) => (
+      render: (_value: any, release?: ReleaseSchema | null) => (
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          {release.downloaded_at ? (
+          {release?.downloaded_at ? (
             <Tooltip content={new Date(release.downloaded_at).toLocaleString()}>
               <span>{formatDistanceToNow(new Date(release.downloaded_at), { addSuffix: true })}</span>
             </Tooltip>
@@ -220,35 +221,20 @@ export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
     },
   ];
 
-  const actions = [
-    {
-      label: 'Voir',
-      onClick: onView,
-      icon: EyeIcon,
-      variant: 'secondary' as const,
-    },
-    {
-      label: 'Modifier',
-      onClick: onEdit,
-      variant: 'secondary' as const,
-    },
-    {
-      label: 'Supprimer',
-      onClick: onDelete,
-      variant: 'danger' as const,
-    },
-  ];
 
   return (
     <DataTable
       data={releases}
       columns={columns}
-      actions={actions}
       loading={loading}
       onSort={onSort}
       sortKey={sortKey}
       sortDirection={sortDirection}
       onRowClick={onRowClick}
+      onView={onView}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      showActions={Boolean(onView || onEdit || onDelete)}
       emptyMessage="Aucune release musicale trouvée"
     />
   );
