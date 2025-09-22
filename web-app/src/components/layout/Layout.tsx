@@ -130,6 +130,11 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
                       </h3>
                     </div>
                   )}
+                  {collapsed && (
+                    <div className="flex justify-center py-2">
+                      <div className="w-8 h-px bg-gray-300 dark:bg-gray-600"></div>
+                    </div>
+                  )}
                   {item.items.map((subItem) => {
                     const Icon = subItem.icon;
                     const isCurrentItem = pathname === subItem.href;
@@ -138,7 +143,8 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
                         key={subItem.name}
                         href={subItem.href}
                         className={cn(
-                          "group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
+                          "group flex items-center justify-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
+                          collapsed ? "mx-1" : "mx-0",
                           isCurrentItem
                             ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
                             : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
@@ -146,7 +152,8 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
                       >
                         <Icon
                           className={cn(
-                            "mr-3 h-6 w-6 flex-shrink-0 transition-colors",
+                            "h-6 w-6 flex-shrink-0 transition-colors",
+                            collapsed ? "mx-0" : "mr-3",
                             isCurrentItem
                               ? "text-blue-500"
                               : "text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
@@ -170,6 +177,7 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
                 href={item.href}
                 className={cn(
                   "group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
+                  collapsed ? "justify-center mx-1" : "justify-start mx-0",
                   isCurrentItem
                     ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
@@ -177,7 +185,8 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
               >
                 <Icon
                   className={cn(
-                    "mr-3 h-6 w-6 flex-shrink-0 transition-colors",
+                    "h-6 w-6 flex-shrink-0 transition-colors",
+                    collapsed ? "mx-0" : "mr-3",
                     isCurrentItem
                       ? "text-blue-500"
                       : "text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
@@ -199,10 +208,16 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
               </h3>
             </div>
           )}
+          {collapsed && (
+            <div className="flex justify-center py-2">
+              <div className="w-8 h-px bg-gray-300 dark:bg-gray-600"></div>
+            </div>
+          )}
           <Link
             href="/settings"
             className={cn(
               "group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
+              collapsed ? "justify-center mx-1" : "justify-start mx-0",
               pathname === "/settings"
                 ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
                 : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
@@ -210,7 +225,8 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
           >
             <Cog6ToothIcon
               className={cn(
-                "mr-3 h-6 w-6 flex-shrink-0 transition-colors",
+                "h-6 w-6 flex-shrink-0 transition-colors",
+                collapsed ? "mx-0" : "mr-3",
                 pathname === "/settings"
                   ? "text-blue-500"
                   : "text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
@@ -226,12 +242,15 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
           <button
             type="button"
             onClick={toggle}
-            className="hidden lg:flex items-center justify-center w-full rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:hover:bg-gray-700"
+            title={collapsed ? "Développer le menu" : "Réduire le menu"}
+            className="flex items-center justify-center w-full rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:hover:bg-gray-700 transition-colors"
           >
-            <span className="sr-only">
-              {collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            </span>
             <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+            {!collapsed && (
+              <span className="ml-2 text-sm hidden xl:inline">
+                {collapsed ? "Développer" : "Réduire"}
+              </span>
+            )}
           </button>
         </div>
       </div>
