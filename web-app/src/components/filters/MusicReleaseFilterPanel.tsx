@@ -81,7 +81,7 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
 
   const handleStatusFilter = useCallback((status: string) => {
     const newFilters = { ...filters } as MusicReleaseQueryParams;
-    const current = Array.isArray(filters.status__in) ? [...filters.status__in] : (filters.status ? [filters.status] : []);
+    const current = Array.isArray(filters.status) ? [...filters.status] : (filters.status ? [filters.status] : []);
 
     const index = current.indexOf(status);
     if (index >= 0) {
@@ -91,11 +91,8 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
     }
 
     if (current.length > 0) {
-      newFilters.status__in = current;
-      // Clear single status field for compatibility
-      delete newFilters.status;
+      newFilters.status = current;
     } else {
-      delete newFilters.status__in;
       delete newFilters.status;
     }
 
@@ -125,7 +122,7 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
     key !== 'limit' &&
     key !== 'sort_by' &&
     key !== 'sort_order'
-  ).length + (Array.isArray(filters.status__in) ? filters.status__in.length - (filters.status__in.length > 0 ? 0 : 0) : 0);
+  ).length + (Array.isArray(filters.status) ? filters.status.length - (filters.status.length > 0 ? 0 : 0) : 0);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -168,7 +165,11 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
             {/* Status chips */}
             <div className="flex flex-wrap items-center gap-2">
               {Object.entries(statusCounts).map(([status, count]) => {
-                const isActive = filters.status === status;
+                const isActive = filters.status
+                  ? (Array.isArray(filters.status)
+                      ? filters.status.includes(status)
+                      : filters.status === status)
+                  : false;
                 const colors = getReleaseStatusColors(status);
 
                 return (
@@ -248,10 +249,10 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
                       {filters.title__ilike && (
                         <div>Recherche: "{filters.title__ilike}"</div>
                       )}
-                      {Array.isArray(filters.status__in) && filters.status__in.length > 0 && (
-                        <div>Statut: {filters.status__in.join(', ')}</div>
+                      {Array.isArray(filters.status) && filters.status.length > 0 && (
+                        <div>Statut: {filters.status.join(', ')}</div>
                       )}
-                      {filters.status && (
+                      {filters.status && !Array.isArray(filters.status) && (
                         <div>Statut: {filters.status}</div>
                       )}
                 </div>

@@ -152,8 +152,8 @@ export const useMusicReleaseStore = create<MusicReleaseState>()(
           });
 
           // If a specific status filter(s) are active, compute the total based on those
-          if (status__in && Array.isArray(status__in) && status__in.length > 0) {
-            totalCount = status__in.reduce((sum: number, s: string) => sum + (statusCounts[s] || 0), 0);
+          if (status && Array.isArray(status) && status.length > 0) {
+            totalCount = status.reduce((sum: number, s: string) => sum + (statusCounts[s] || 0), 0);
           } else if (status && typeof status === 'string') {
             totalCount = statusCounts[status] || totalCount;
           } else {
