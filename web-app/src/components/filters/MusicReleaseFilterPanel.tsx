@@ -62,7 +62,7 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
   loading = false,
   totalCount = 0,
 }) => {
-  const [localSearch, setLocalSearch] = useState(filters.title__ilike || '');
+  const [localSearch, setLocalSearch] = useState(filters.search || '');
 
   const handleSearchChange = useCallback((value: string) => {
     setLocalSearch(value);
@@ -70,8 +70,7 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
     const timeoutId = setTimeout(() => {
       onFiltersChange({
         ...filters,
-        title__ilike: value || undefined,
-        uploader__ilike: value || undefined,
+        search: value || undefined,
       });
     }, 300);
 

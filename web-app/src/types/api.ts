@@ -352,6 +352,7 @@ export interface ReleaseUpdateSchema extends ReleaseSchema {}
 
 export interface MusicReleaseQueryParams {
   // Filtering
+  search?: string;
   status?: string[];
   status__in?: string[];
   status__not_in?: string[];
