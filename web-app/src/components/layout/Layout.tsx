@@ -10,6 +10,8 @@ import {
   Bars3Icon,
   XMarkIcon,
   MusicalNoteIcon,
+  RadioIcon,
+  RectangleStackIcon,
 } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '@/stores';
@@ -33,7 +35,7 @@ const navigation: (NavigationItem | NavigationSection)[] = [
     title: 'Video',
     collapsedLabel: 'VID',
     items: [
-      { name: 'Channels', href: '/channels', icon: TvIcon },
+      { name: 'Channels', href: '/channels', icon: RadioIcon },
       { name: 'Playlists', href: '/playlists', icon: QueueListIcon },
       { name: 'Videos', href: '/videos', icon: PlayIcon },
     ]
@@ -42,8 +44,8 @@ const navigation: (NavigationItem | NavigationSection)[] = [
     title: 'Musique',
     collapsedLabel: 'MUS',
     items: [
-      { name: 'Music Channels', href: '/music/channels', icon: MusicalNoteIcon },
-      { name: 'Music Releases', href: '/music/releases', icon: MusicalNoteIcon },
+      { name: 'Music Channels', href: '/music/channels', icon: RadioIcon },
+      { name: 'Music Releases', href: '/music/releases', icon: RectangleStackIcon },
       { name: 'Music Videos', href: '/music/videos', icon: PlayIcon },
     ]
   },
