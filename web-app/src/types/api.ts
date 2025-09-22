@@ -320,9 +320,76 @@ export type Video = VideoSchema;
 export type Channel = ChannelSchema;
 export type MusicChannel = MusicChannelSchema;
 export type Playlist = PlaylistSchema;
+export type Release = ReleaseSchema;
 
 // Additional common types
 export interface StatusCount {
   status: string | null;
   count: number;
+}
+
+export interface ReleaseSchema {
+  id?: number | null;
+  inserted_at?: string | null; // ISO date-time string
+  updated_at?: string | null; // ISO date-time string
+  status?: string | null;
+  priority?: number | null;
+  url?: string | null;
+  playlist_index?: string | null;
+  title?: string | null;
+  uploader?: string | null;
+  playlist_name?: string | null;
+  downloaded_at?: string | null; // ISO date-time string
+  failed_at?: string | null; // ISO date-time string
+  channel_name?: string | null;
+  channel_path?: string | null;
+  current_index?: number | null;
+  errors?: Record<string, any> | null;
+  total_index?: number | null;
+}
+
+export interface ReleaseUpdateSchema extends ReleaseSchema {}
+
+export interface MusicReleaseQueryParams {
+  // Filtering
+  status?: string;
+  status__in?: string[];
+  status__not_in?: string[];
+  priority__eq?: number;
+  priority__gt?: number;
+  priority__gte?: number;
+  priority__lt?: number;
+  priority__lte?: number;
+  url__ilike?: string;
+  url?: string;
+  playlist_index__ilike?: string;
+  playlist_index?: string;
+  title__ilike?: string;
+  title?: string;
+  uploader__ilike?: string;
+  uploader?: string;
+  playlist_name__ilike?: string;
+  playlist_name?: string;
+  channel_name__ilike?: string;
+  channel_name?: string;
+  channel_path__ilike?: string;
+  channel_path?: string;
+  current_index__eq?: number;
+  total_index__eq?: number;
+  inserted_at__eq?: string;
+  inserted_at__isnull?: boolean;
+  updated_at__eq?: string;
+  updated_at__isnull?: boolean;
+  downloaded_at__eq?: string;
+  downloaded_at__isnull?: boolean;
+  failed_at__eq?: string;
+  failed_at__isnull?: boolean;
+
+  // Sorting
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+
+  // Pagination
+  limit?: number;
+  offset?: number;
 }

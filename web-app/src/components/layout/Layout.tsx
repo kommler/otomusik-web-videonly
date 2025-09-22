@@ -43,6 +43,7 @@ const navigation: (NavigationItem | NavigationSection)[] = [
     collapsedLabel: 'MUS',
     items: [
       { name: 'Music Channels', href: '/music/channels', icon: MusicalNoteIcon },
+      { name: 'Music Releases', href: '/music/releases', icon: MusicalNoteIcon },
     ]
   },
   {
