@@ -23,6 +23,7 @@ interface NavigationItem {
 
 interface NavigationSection {
   title: string;
+  collapsedLabel?: string; // Label court pour le mode collapsed
   items: NavigationItem[];
 }
 
@@ -30,6 +31,7 @@ const navigation: (NavigationItem | NavigationSection)[] = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   {
     title: 'Video',
+    collapsedLabel: 'VID',
     items: [
       { name: 'Channels', href: '/channels', icon: TvIcon },
       { name: 'Playlists', href: '/playlists', icon: QueueListIcon },
@@ -38,8 +40,15 @@ const navigation: (NavigationItem | NavigationSection)[] = [
   },
   {
     title: 'Musique',
+    collapsedLabel: 'MUS',
     items: [
       { name: 'Music Channels', href: '/music/channels', icon: MusicalNoteIcon },
+    ]
+  },
+  {
+    title: 'Paramètres',
+    collapsedLabel: 'CFG',
+    items: [
       { name: 'Paramètres', href: '/settings', icon: Cog6ToothIcon },
     ]
   },
@@ -142,7 +151,12 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
                     </div>
                   )}
                   {collapsed && (
-                    <div className="flex justify-center py-2">
+                    <div className="flex flex-col items-center py-2 space-y-1">
+                      {item.collapsedLabel && (
+                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          {item.collapsedLabel}
+                        </span>
+                      )}
                       <div className="w-8 h-px bg-gray-300 dark:bg-gray-600"></div>
                     </div>
                   )}
