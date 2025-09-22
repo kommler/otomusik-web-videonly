@@ -29,12 +29,6 @@ interface NavigationSection {
 const navigation: (NavigationItem | NavigationSection)[] = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   {
-    title: 'Musique',
-    items: [
-      { name: 'Music Channels', href: '/music/channels', icon: MusicalNoteIcon },
-    ]
-  },
-  {
     title: 'Video',
     items: [
       { name: 'Channels', href: '/channels', icon: TvIcon },
@@ -42,7 +36,12 @@ const navigation: (NavigationItem | NavigationSection)[] = [
       { name: 'Videos', href: '/videos', icon: PlayIcon },
     ]
   },
-  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+  {
+    title: 'Musique',
+    items: [
+      { name: 'Music Channels', href: '/music/channels', icon: MusicalNoteIcon },
+    ]
+  },
 ];
 
 interface SidebarProps {
@@ -190,6 +189,37 @@ export const Layout: React.FC<SidebarProps> = ({ children }) => {
             );
           })}
         </nav>
+
+        {/* Settings section at bottom */}
+        <div className="px-2 pb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+          {!collapsed && (
+            <div className="px-2 py-2">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                Configuration
+              </h3>
+            </div>
+          )}
+          <Link
+            href="/settings"
+            className={cn(
+              "group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
+              pathname === "/settings"
+                ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
+                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            )}
+          >
+            <Cog6ToothIcon
+              className={cn(
+                "mr-3 h-6 w-6 flex-shrink-0 transition-colors",
+                pathname === "/settings"
+                  ? "text-blue-500"
+                  : "text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
+              )}
+              aria-hidden="true"
+            />
+            {!collapsed && "Paramètres"}
+          </Link>
+        </div>
 
         {/* Sidebar footer */}
         <div className="flex flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700">
