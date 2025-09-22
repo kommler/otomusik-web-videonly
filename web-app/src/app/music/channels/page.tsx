@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { Layout } from '@/components/layout/Layout';
 import { MusicChannelTable } from '@/components/tables';
 import { useMusicChannelStore } from '@/stores';
 import { MusicChannel, StatusCount } from '@/types/api';
@@ -166,65 +167,67 @@ export default function MusicChannelsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Music Channels
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            Manage and monitor music channels ({totalChannels} total)
-          </p>
+    <Layout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Music Channels
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400">
+              Manage and monitor music channels ({totalChannels} total)
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Search and Filters */}
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="flex-1">
-          <SearchInput
-            value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder="Search music channels by name, uploader..."
-          />
+        {/* Search and Filters */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1">
+            <SearchInput
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Search music channels by name, uploader..."
+            />
+          </div>
+          <div className="lg:w-80">
+            <MusicChannelFilters
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+              statusFilters={statusFilters}
+              loading={loading}
+            />
+          </div>
         </div>
-        <div className="lg:w-80">
-          <MusicChannelFilters
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            statusFilters={statusFilters}
+
+        {/* Table */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+          <MusicChannelTable
+            channels={channels}
             loading={loading}
+            onSort={handleSort}
+            sortKey={sortKey || undefined}
+            sortDirection={sortDirection}
+            onRowClick={handleRowClick}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
         </div>
-      </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-        <MusicChannelTable
-          channels={channels}
-          loading={loading}
-          onSort={handleSort}
-          sortKey={sortKey || undefined}
-          sortDirection={sortDirection}
-          onRowClick={handleRowClick}
-          onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalRecords={totalChannels}
+              pageSize={ITEMS_PER_PAGE}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalRecords={totalChannels}
-            pageSize={ITEMS_PER_PAGE}
-            onPageChange={setCurrentPage}
-          />
-        </div>
-      )}
-    </div>
+    </Layout>
   );
 }
