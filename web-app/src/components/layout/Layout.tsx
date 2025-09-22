@@ -44,6 +44,7 @@ const navigation: (NavigationItem | NavigationSection)[] = [
     items: [
       { name: 'Music Channels', href: '/music/channels', icon: MusicalNoteIcon },
       { name: 'Music Releases', href: '/music/releases', icon: MusicalNoteIcon },
+      { name: 'Music Videos', href: '/music/videos', icon: PlayIcon },
     ]
   },
   {

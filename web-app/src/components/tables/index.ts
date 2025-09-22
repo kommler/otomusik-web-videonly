@@ -4,4 +4,5 @@ export { VideoTable } from './VideoTable';
 export { ChannelTable } from './ChannelTable';
 export { MusicChannelTable } from './MusicChannelTable';
 export { MusicReleaseTable } from './MusicReleaseTable';
+export { MusicVideoTable } from './MusicVideoTable';
 export { PlaylistTable } from './PlaylistTable';
