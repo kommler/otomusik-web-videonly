@@ -10,34 +10,35 @@ const getReleaseStatusColors = (status: string) => {
   switch (status.toLowerCase()) {
     case 'downloaded':
       return {
-        normal: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+        normal: 'text-gray-700 dark:text-gray-300',
         active: 'bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100',
         count: 'bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100'
       };
     case 'pending':
+    case 'waiting':
     case 'extracting':
     case 'downloading':
       return {
-        normal: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+        normal: 'text-gray-700 dark:text-gray-300',
         active: 'bg-yellow-200 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100',
         count: 'bg-yellow-200 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100'
       };
     case 'failed':
     case 'error':
       return {
-        normal: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+        normal: 'text-gray-700 dark:text-gray-300',
         active: 'bg-red-200 text-red-900 dark:bg-red-800 dark:text-red-100',
         count: 'bg-red-200 text-red-900 dark:bg-red-800 dark:text-red-100'
       };
     case 'skip':
       return {
-        normal: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+        normal: 'text-gray-700 dark:text-gray-300',
         active: 'bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100',
         count: 'bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100'
       };
     default:
       return {
-        normal: 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400',
+        normal: 'text-gray-700 dark:text-gray-300',
         active: 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100',
         count: 'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-200'
       };
