@@ -86,7 +86,7 @@ export const useMusicReleaseStore = create<MusicReleaseState>()(
       setSelectedRelease: (selectedRelease) => set({ selectedRelease }),
       setLoading: (loading) => set({ loading }),
       setError: (error) => set({ error }),
-      setFilters: (filters) => set({ filters }),
+  setFilters: (filters) => set({ filters, currentPage: 1 }),
       setCurrentPage: (currentPage) => set({ currentPage }),
       setStatusCounts: (statusCounts) => set({ statusCounts }),
 
@@ -96,26 +96,20 @@ export const useMusicReleaseStore = create<MusicReleaseState>()(
         const startIndex = (currentPage - 1) * pageSize;
         const endIndex = startIndex + pageSize;
         const paginatedReleases = allReleases.slice(startIndex, endIndex);
-        set({ releases: paginatedReleases });
+        set({ releases: paginatedReleases, totalCount: allReleases.length });
       },
 
       // API Actions
       fetchReleases: async (params) => {
-        const state = get();
-        const queryParams = params || state.filters;
-
         set({ loading: true, error: null });
-
         try {
-          const releases = await musicReleaseApi.list(queryParams);
-          set({
-            releases,
-            allReleases: releases,
-            loading: false,
-            totalCount: releases.length
-          });
+          const state = get();
+          // Fetch all records (no limit) so we can paginate client-side
+          const queryParams = { ...state.filters, ...params, limit: undefined } as any;
+          const allReleases = await musicReleaseApi.list(queryParams);
+          set({ allReleases, loading: false });
 
-          // Update pagination if needed
+          // Update pagination client-side
           get().updatePaginatedReleases();
         } catch (error) {
           console.error('Failed to fetch music releases:', error);
@@ -138,27 +132,38 @@ export const useMusicReleaseStore = create<MusicReleaseState>()(
       },
 
       fetchStatusCounts: async (params) => {
-        const queryParams = params || get().filters;
-
         try {
-          const countResponse = await musicReleaseApi.count(queryParams);
-          // For status counts, we need to make separate calls for each status
-          // This is a simplified version - in a real app you might want to optimize this
-          const statusCounts: Record<string, number> = {};
+          // Build filters for counting: include current filters but exclude status and pagination
+          const currentFilters = { ...get().filters, ...params } as any;
+          const { status, status__in, sort_by, sort_order, limit, offset, ...filtersForCount } = currentFilters;
 
-          // Get counts for common statuses
-          const statuses = ['PENDING', 'DOWNLOADING', 'DOWNLOADED', 'ERROR', 'FAILED'];
-          for (const status of statuses) {
-            try {
-              const statusCount = await musicReleaseApi.count({ ...queryParams, status });
-              statusCounts[status] = statusCount.count || 0;
-            } catch (error) {
-              console.error(`Failed to fetch count for status ${status}:`, error);
-              statusCounts[status] = 0;
+          const response = await musicReleaseApi.count(filtersForCount);
+
+          // Convert response to statusCounts
+          const statusCounts: Record<string, number> = {};
+          let totalCount = 0;
+
+          Object.entries(response || {}).forEach(([key, value]) => {
+            if (key !== 'count' && typeof value === 'number') {
+              statusCounts[key] = value;
+            } else if (key === 'count' && typeof value === 'number') {
+              totalCount = value;
+            }
+          });
+
+          // If a specific status filter(s) are active, compute the total based on those
+          if (status__in && Array.isArray(status__in) && status__in.length > 0) {
+            totalCount = status__in.reduce((sum: number, s: string) => sum + (statusCounts[s] || 0), 0);
+          } else if (status && typeof status === 'string') {
+            totalCount = statusCounts[status] || totalCount;
+          } else {
+            // Fallback: if API didn't provide a top-level count, sum the status counts
+            if (!totalCount) {
+              totalCount = Object.values(statusCounts).reduce((sum, c) => sum + c, 0);
             }
           }
 
-          set({ statusCounts });
+          set({ statusCounts, totalCount });
         } catch (error) {
           console.error('Failed to fetch status counts:', error);
         }

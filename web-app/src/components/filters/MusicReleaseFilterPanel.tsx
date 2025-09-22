@@ -80,13 +80,25 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
   }, [filters, onFiltersChange]);
 
   const handleStatusFilter = useCallback((status: string) => {
-    const newFilters = { ...filters };
-    if (filters.status === status) {
-      // Remove filter if same status clicked
+    const newFilters = { ...filters } as MusicReleaseQueryParams;
+    const current = Array.isArray(filters.status__in) ? [...filters.status__in] : (filters.status ? [filters.status] : []);
+
+    const index = current.indexOf(status);
+    if (index >= 0) {
+      current.splice(index, 1);
+    } else {
+      current.push(status);
+    }
+
+    if (current.length > 0) {
+      newFilters.status__in = current;
+      // Clear single status field for compatibility
       delete newFilters.status;
     } else {
-      newFilters.status = status;
+      delete newFilters.status__in;
+      delete newFilters.status;
     }
+
     onFiltersChange(newFilters);
   }, [filters, onFiltersChange]);
 
@@ -113,7 +125,7 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
     key !== 'limit' &&
     key !== 'sort_by' &&
     key !== 'sort_order'
-  ).length;
+  ).length + (Array.isArray(filters.status__in) ? filters.status__in.length - (filters.status__in.length > 0 ? 0 : 0) : 0);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -233,12 +245,15 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
                 <span className="text-gray-400">Aucun filtre actif</span>
               ) : (
                 <div className="space-y-1">
-                  {filters.title__ilike && (
-                    <div>Recherche: "{filters.title__ilike}"</div>
-                  )}
-                  {filters.status && (
-                    <div>Statut: {filters.status}</div>
-                  )}
+                      {filters.title__ilike && (
+                        <div>Recherche: "{filters.title__ilike}"</div>
+                      )}
+                      {Array.isArray(filters.status__in) && filters.status__in.length > 0 && (
+                        <div>Statut: {filters.status__in.join(', ')}</div>
+                      )}
+                      {filters.status && (
+                        <div>Statut: {filters.status}</div>
+                      )}
                 </div>
               )}
             </div>
