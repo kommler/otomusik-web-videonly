@@ -28,12 +28,12 @@ interface NavigationSection {
 
 const navigation: (NavigationItem | NavigationSection)[] = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
-  // {
-  //   title: 'Musique',
-  //   items: [
-  //     // Section musique sera ajoutée plus tard
-  //   ]
-  // },
+  {
+    title: 'Musique',
+    items: [
+      { name: 'Music Channels', href: '/music/channels', icon: MusicalNoteIcon },
+    ]
+  },
   {
     title: 'Video',
     items: [

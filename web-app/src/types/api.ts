@@ -93,6 +93,25 @@ export interface PlaylistSchema {
 
 export interface PlaylistUpdateSchema extends PlaylistSchema {}
 
+// Music types
+export interface MusicChannelSchema {
+  id?: number | null;
+  status?: string | null;
+  inserted_at?: string | null; // ISO date-time string
+  updated_at?: string | null; // ISO date-time string
+  url?: string | null;
+  uploader?: string | null;
+  count_playlist?: number | null;
+  channel_name?: string | null;
+  scrap_options?: string | null;
+  channel_id?: string | null;
+  channel_slug?: string | null;
+  refresh_interval_days?: number | null;
+  scraped_at?: string | null; // ISO date-time string
+}
+
+export interface MusicChannelUpdateSchema extends MusicChannelSchema {}
+
 export interface ValidationError {
   loc: (string | number)[];
   msg: string;
@@ -264,4 +283,46 @@ export interface PlaylistQueryParams {
   playlist_count__eq?: number;
   playlist_id__ilike?: string;
   playlist_id?: string;
+}
+
+export interface MusicChannelQueryParams {
+  status?: string[];
+  search?: string;
+  limit?: number;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+  id__eq?: number;
+  status__ilike?: string;
+  inserted_at__eq?: string;
+  inserted_at__isnull?: boolean;
+  updated_at__eq?: string;
+  updated_at__isnull?: boolean;
+  url__ilike?: string;
+  url?: string;
+  uploader__ilike?: string;
+  uploader?: string;
+  count_playlist__eq?: number;
+  channel_name__ilike?: string;
+  channel_name?: string;
+  scrap_options__ilike?: string;
+  scrap_options?: string;
+  channel_id__ilike?: string;
+  channel_id?: string;
+  channel_slug__ilike?: string;
+  channel_slug?: string;
+  refresh_interval_days__eq?: number;
+  scraped_at__eq?: string;
+  scraped_at__isnull?: boolean;
+}
+
+// Type aliases for convenience
+export type Video = VideoSchema;
+export type Channel = ChannelSchema;
+export type MusicChannel = MusicChannelSchema;
+export type Playlist = PlaylistSchema;
+
+// Additional common types
+export interface StatusCount {
+  status: string | null;
+  count: number;
 }
