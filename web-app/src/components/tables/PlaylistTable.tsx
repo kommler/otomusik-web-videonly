@@ -21,11 +21,13 @@ interface PlaylistTableProps {
   onEdit?: (playlist: PlaylistSchema) => void;
   onDelete?: (playlist: PlaylistSchema) => void;
   onRowClick?: (playlist: PlaylistSchema) => void;
+  onStatusDoubleClick?: (playlist: PlaylistSchema) => void;
 }
 
 // Fonction utilitaire pour obtenir la couleur du badge basée sur le statut
 const getStatusColor = (status: string): string => {
   const statusColors: Record<string, string> = {
+    WAITING: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
     DOWNLOADED: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
     DOWNLOADING: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
     CURRENT: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
@@ -36,14 +38,21 @@ const getStatusColor = (status: string): string => {
 };
 
 // Composant Badge pour afficher le statut
-const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
+const StatusBadge: React.FC<{ 
+  status: string; 
+  onDoubleClick?: () => void; 
+}> = ({ status, onDoubleClick }) => {
   if (!status) return <span className="text-gray-400">-</span>;
   
   return (
-    <span className={cn(
-      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize",
-      getStatusColor(status)
-    )}>
+    <span 
+      className={cn(
+        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize cursor-pointer select-none transition-all duration-200 hover:shadow-md",
+        getStatusColor(status)
+      )}
+      onDoubleClick={onDoubleClick}
+      title="Double-cliquez pour passer le statut en WAITING"
+    >
       {status}
     </span>
   );
@@ -59,6 +68,7 @@ export const PlaylistTable: React.FC<PlaylistTableProps> = ({
   onEdit,
   onDelete,
   onRowClick,
+  onStatusDoubleClick,
 }) => {
   const columns = [
     {
@@ -124,8 +134,11 @@ export const PlaylistTable: React.FC<PlaylistTableProps> = ({
       title: 'Status',
       sortable: true,
       width: '100px',
-      render: (status: string | null) => (
-        <StatusBadge status={status || 'UNKNOWN'} />
+      render: (status: string | null, playlist: PlaylistSchema) => (
+        <StatusBadge 
+          status={status || 'UNKNOWN'} 
+          onDoubleClick={() => onStatusDoubleClick?.(playlist)}
+        />
       ),
     },
     {

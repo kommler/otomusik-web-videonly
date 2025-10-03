@@ -26,6 +26,7 @@ const playlistFilterConfig = {
 
 // Status options for playlist editing
 const playlistStatusOptions = [
+  { value: 'WAITING', label: 'Waiting' },
   { value: 'DOWNLOADING', label: 'Downloading' },
   { value: 'DOWNLOADED', label: 'Downloaded' },
   { value: 'CURRENT', label: 'Current' },
@@ -267,6 +268,47 @@ const PlaylistsPage: React.FC = () => {
     }
   }, [selectedPlaylist, deletePlaylist, clearSelection, fetchPlaylists, fetchStatusCounts]);
 
+  // Gestionnaire de double-clic sur le statut pour passer en WAITING
+  const handleStatusDoubleClick = useCallback(async (playlist: PlaylistSchema) => {
+    if (!playlist.id) {
+      addNotification({
+        type: 'error',
+        title: 'Error',
+        message: 'Cannot update playlist: Invalid ID',
+      });
+      return;
+    }
+
+    try {
+      // Créer les données de mise à jour avec seulement le statut modifié
+      const updatedPlaylistData: PlaylistSchema = {
+        ...playlist,
+        status: 'WAITING'
+      };
+
+      const result = await updatePlaylist(playlist.id, updatedPlaylistData);
+      
+      if (result) {
+        addNotification({
+          type: 'success',
+          title: 'Status Updated',
+          message: `Playlist "${playlist.name || playlist.id}" status changed to WAITING`,
+        });
+
+        // Recharger les données
+        fetchPlaylists();
+        fetchStatusCounts();
+      }
+    } catch (error) {
+      console.error('Failed to update playlist status:', error);
+      addNotification({
+        type: 'error',
+        title: 'Update Failed',
+        message: 'Failed to update playlist status. Please try again.',
+      });
+    }
+  }, [updatePlaylist, addNotification, fetchPlaylists, fetchStatusCounts]);
+
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
@@ -342,6 +384,7 @@ const PlaylistsPage: React.FC = () => {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onRowClick={(playlist) => setSelectedPlaylist(playlist)}
+          onStatusDoubleClick={handleStatusDoubleClick}
         />
 
         {/* Contrôles de pagination (bas) */}
