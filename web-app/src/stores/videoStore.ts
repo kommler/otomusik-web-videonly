@@ -33,6 +33,7 @@ interface VideoState {
   setError: (error: string | null) => void;
   setFilters: (filters: VideoQueryParams) => void;
   setCurrentPage: (page: number) => void;
+  setPageSize: (pageSize: number) => void;
   setStatusCounts: (counts: Record<string, number>) => void;
   
   // Utility method for client-side pagination
@@ -86,7 +87,20 @@ export const useVideoStore = create<VideoState>()(
       setLoading: (loading) => set({ loading }),
       setError: (error) => set({ error }),
       setFilters: (filters) => set({ filters, currentPage: 1 }), // Reset page to 1 when filters change
-      setCurrentPage: (page) => set({ currentPage: page }),
+      setCurrentPage: (currentPage) => {
+        set({ currentPage });
+        // Trigger pagination update after state change
+        setTimeout(() => {
+          get().updatePaginatedVideos();
+        }, 0);
+      },
+      setPageSize: (pageSize) => {
+        set({ pageSize, currentPage: 1 }, false, 'setPageSize');
+        // Trigger pagination update after state change
+        setTimeout(() => {
+          get().updatePaginatedVideos();
+        }, 0);
+      },
       setStatusCounts: (counts) => set({ statusCounts: counts }),
       
       // Utility method for client-side pagination

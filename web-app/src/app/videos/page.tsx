@@ -43,6 +43,7 @@ export default function VideosPage() {
     fetchVideos, 
     setFilters, 
     setCurrentPage,
+    setPageSize,
     fetchStatusCounts,
     updateVideo,
     deleteVideo,
@@ -302,17 +303,18 @@ export default function VideosPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Met à jour la pagination côté client (pas besoin de fetch)
-    const { updatePaginatedVideos } = useVideoStore.getState();
-    updatePaginatedVideos();
   };
 
   const handlePageSizeChange = (size: number) => {
+    // Update page size in store (this will automatically trigger pagination update)
+    setPageSize(size);
+    
+    // Update filters with new limit
     const newFilters = {
       ...filters,
       limit: size,
     };
-    setFilters(newFilters); // setFilters automatically resets page to 1
+    setFilters(newFilters);
   };
 
   const totalPages = Math.ceil(totalCount / pageSize);
