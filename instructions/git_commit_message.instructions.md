@@ -5,3 +5,5 @@ applyTo: '**'
 
 Proposer une commande fusionne git add -A && git commit -m avec le message pour que ce soit plus efficace
 
+use a short git commit message
+
