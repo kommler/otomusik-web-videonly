@@ -33,6 +33,7 @@ interface ChannelState {
   setError: (error: string | null) => void;
   setFilters: (filters: ChannelQueryParams) => void;
   setCurrentPage: (page: number) => void;
+  setPageSize: (pageSize: number) => void;
   setStatusCounts: (counts: Record<string, number>) => void;
   
   // Utility method for client-side pagination
@@ -86,7 +87,20 @@ export const useChannelStore = create<ChannelState>()(
       setLoading: (loading) => set({ loading }),
       setError: (error) => set({ error }),
       setFilters: (filters) => set({ filters, currentPage: 1 }), // Reset page to 1 when filters change
-      setCurrentPage: (page) => set({ currentPage: page }),
+      setCurrentPage: (currentPage) => {
+        set({ currentPage });
+        // Trigger pagination update after state change
+        setTimeout(() => {
+          get().updatePaginatedChannels();
+        }, 0);
+      },
+      setPageSize: (pageSize) => {
+        set({ pageSize, currentPage: 1 }, false, 'setPageSize');
+        // Trigger pagination update after state change
+        setTimeout(() => {
+          get().updatePaginatedChannels();
+        }, 0);
+      },
       setStatusCounts: (counts) => set({ statusCounts: counts }),
       
       // Utility method for client-side pagination
