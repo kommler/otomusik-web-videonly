@@ -17,6 +17,7 @@ interface VideoTableProps {
   onDelete?: (video: VideoSchema) => void;
   onRowClick?: (video: VideoSchema) => void;
   onStatusChange?: (video: VideoSchema, newStatus: string) => void;
+  onStatusDoubleClick?: (video: VideoSchema) => void;
 }
 
 // Status badge component
@@ -25,7 +26,8 @@ const StatusBadge: React.FC<{
   errors?: any; 
   video?: VideoSchema;
   onStatusChange?: (video: VideoSchema, newStatus: string) => void;
-}> = ({ status, errors, video, onStatusChange }) => {
+  onStatusDoubleClick?: (video: VideoSchema) => void;
+}> = ({ status, errors, video, onStatusChange, onStatusDoubleClick }) => {
   if (!status) return <span className="text-gray-400">-</span>;
   
   const getStatusColor = (status: string) => {
@@ -64,8 +66,8 @@ const StatusBadge: React.FC<{
   };
 
   const handleDoubleClick = () => {
-    if ((status?.toLowerCase() === 'failed' || status?.toLowerCase() === 'skip') && video && onStatusChange) {
-      onStatusChange(video, 'PENDING');
+    if (video && onStatusDoubleClick) {
+      onStatusDoubleClick(video);
     }
   };
 
@@ -74,9 +76,10 @@ const StatusBadge: React.FC<{
       className={cn(
         "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize",
         getStatusColor(status),
-        (status?.toLowerCase() === 'failed' || status?.toLowerCase() === 'skip') && onStatusChange ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
+        onStatusDoubleClick ? 'cursor-pointer hover:opacity-80 transition-opacity hover:shadow-md' : ''
       )}
       onDoubleClick={handleDoubleClick}
+      title={onStatusDoubleClick ? "Double-cliquez pour passer en PENDING et réinitialiser la date de téléchargement" : undefined}
     >
       {status}
     </span>
@@ -90,9 +93,11 @@ const StatusBadge: React.FC<{
       <Tooltip 
         content={
           <div className="max-w-sm">
-            <div className="text-blue-300 mb-2 font-medium">
-              💡 Double-cliquez pour repasser en PENDING
-            </div>
+            {onStatusDoubleClick && (
+              <div className="text-blue-300 mb-2 font-medium">
+                💡 Double-cliquez pour repasser en PENDING et reset downloaded_at
+              </div>
+            )}
             <div className="font-semibold mb-1 text-white">Error Details:</div>
             <div className="text-sm whitespace-pre-wrap text-gray-200">{errorMessage}</div>
           </div>
@@ -105,17 +110,17 @@ const StatusBadge: React.FC<{
     );
   }
 
-  // Add tooltip for SKIP status
-  if (status.toLowerCase() === 'skip') {
+  // Add tooltip for other statuses if onStatusDoubleClick is available
+  if (onStatusDoubleClick && status && ['skip', 'error', 'downloading', 'downloaded'].includes(status.toLowerCase())) {
     return (
       <Tooltip 
         content={
           <div className="max-w-sm">
             <div className="text-blue-300 mb-2 font-medium">
-              💡 Double-cliquez pour repasser en PENDING
+              💡 Double-cliquez pour repasser en PENDING et reset downloaded_at
             </div>
             <div className="font-semibold mb-1 text-white">Status:</div>
-            <div className="text-sm text-gray-200">Cette vidéo a été volontairement ignorée</div>
+            <div className="text-sm text-gray-200">Statut actuel: {status}</div>
           </div>
         }
         position="top"
@@ -163,6 +168,7 @@ export const VideoTable: React.FC<VideoTableProps> = ({
   onDelete,
   onRowClick,
   onStatusChange,
+  onStatusDoubleClick,
 }) => {
   const columns = [
     {
@@ -251,7 +257,13 @@ export const VideoTable: React.FC<VideoTableProps> = ({
       sortable: true,
       width: '120px',
       render: (status: string | null, video: VideoSchema) => (
-        <StatusBadge status={status} errors={video.errors} video={video} onStatusChange={onStatusChange} />
+        <StatusBadge 
+          status={status} 
+          errors={video.errors} 
+          video={video} 
+          onStatusChange={onStatusChange}
+          onStatusDoubleClick={onStatusDoubleClick}
+        />
       ),
     },
     {

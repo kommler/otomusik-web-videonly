@@ -215,6 +215,48 @@ export default function VideosPage() {
     }
   };
 
+  // Gestionnaire de double-clic sur le statut pour passer en PENDING et reset downloaded_at
+  const handleStatusDoubleClick = async (video: VideoSchema) => {
+    if (!video.id) {
+      addNotification({
+        type: 'error',
+        title: 'Error',
+        message: 'Cannot update video: Invalid ID',
+      });
+      return;
+    }
+
+    try {
+      // Créer les données de mise à jour avec statut PENDING et downloaded_at à null
+      const updatedVideoData: VideoSchema = {
+        ...video,
+        status: 'PENDING',
+        downloaded_at: null
+      };
+
+      const result = await updateVideo(video.id, updatedVideoData);
+      
+      if (result) {
+        addNotification({
+          type: 'success',
+          title: 'Status Updated',
+          message: `Video "${video.title || video.video_name || video.id}" status changed to PENDING and download date reset`,
+        });
+
+        // Recharger les données pour refléter les changements
+        fetchVideos(filters);
+        fetchStatusCounts(filters);
+      }
+    } catch (error) {
+      console.error('Failed to update video status:', error);
+      addNotification({
+        type: 'error',
+        title: 'Update Failed',
+        message: 'Failed to update video status. Please try again.',
+      });
+    }
+  };
+
   const openCreateModal = () => {
     setFormData({
       oto_channel_id: null,
@@ -347,6 +389,7 @@ export default function VideosPage() {
               onEdit={openEditModal}
               onDelete={handleDeleteVideo}
               onStatusChange={handleStatusChange}
+              onStatusDoubleClick={handleStatusDoubleClick}
             />
 
             {/* Bottom Pagination */}

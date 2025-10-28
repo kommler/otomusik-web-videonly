@@ -17,6 +17,7 @@ interface MusicReleaseTableProps {
   onDelete?: (release: ReleaseSchema) => void;
   onRowClick?: (release: ReleaseSchema) => void;
   onStatusChange?: (release: ReleaseSchema, newStatus: string) => void;
+  onStatusDoubleClick?: (release: ReleaseSchema) => void;
 }
 
 // Status badge component
@@ -25,7 +26,8 @@ const StatusBadge: React.FC<{
   errors?: any;
   release?: ReleaseSchema;
   onStatusChange?: (release: ReleaseSchema, newStatus: string) => void;
-}> = ({ status, errors, release, onStatusChange }) => {
+  onStatusDoubleClick?: (release: ReleaseSchema) => void;
+}> = ({ status, errors, release, onStatusChange, onStatusDoubleClick }) => {
   if (!status) return <span className="text-gray-400">-</span>;
 
   const getStatusColor = (status: string) => {
@@ -61,13 +63,25 @@ const StatusBadge: React.FC<{
 
   const hasErrors = errors && Object.keys(errors).length > 0;
   const errorMessage = formatErrorMessage(errors);
+  const isFailed = status?.toLowerCase() === 'failed';
+
+  const handleDoubleClick = () => {
+    if (isFailed && release && onStatusDoubleClick) {
+      onStatusDoubleClick(release);
+    }
+  };
 
   return (
     <div className="flex items-center space-x-2">
-      <span className={cn(
-        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-        getStatusColor(status)
-      )}>
+      <span 
+        className={cn(
+          "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all duration-200",
+          getStatusColor(status),
+          isFailed && onStatusDoubleClick ? 'cursor-pointer hover:shadow-md hover:scale-105 select-none' : ''
+        )}
+        onDoubleClick={handleDoubleClick}
+        title={isFailed && onStatusDoubleClick ? 'Double-cliquez pour passer le statut en PENDING' : undefined}
+      >
         {status}
       </span>
       {hasErrors && (
@@ -111,6 +125,7 @@ export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
   onDelete,
   onRowClick,
   onStatusChange,
+  onStatusDoubleClick,
 }) => {
   const columns = [
     {
@@ -144,6 +159,7 @@ export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
           errors={release?.errors}
           release={release ?? undefined}
           onStatusChange={onStatusChange}
+          onStatusDoubleClick={onStatusDoubleClick}
         />
       ),
     },

@@ -215,6 +215,40 @@ export default function MusicReleasesPage() {
     }
   };
 
+  // Handle double-click on FAILED status to change to PENDING
+  const handleStatusDoubleClick = async (release: ReleaseSchema) => {
+    if (!release.id || release.status !== 'FAILED') return;
+
+    try {
+      // Create updated release data with PENDING status
+      const releaseData: ReleaseSchema = {
+        ...release,
+        status: 'PENDING',
+      };
+
+      const updatedRelease = await updateRelease(release.id, releaseData);
+
+      if (updatedRelease) {
+        addNotification({
+          type: 'success',
+          title: 'Status Changed to PENDING',
+          message: `Release "${release.title}" status changed from FAILED to PENDING`,
+        });
+
+        // Refresh data to reflect changes
+        fetchReleases();
+        fetchStatusCounts();
+      }
+    } catch (error) {
+      console.error('Failed to update release status:', error);
+      addNotification({
+        type: 'error',
+        title: 'Status Update Failed',
+        message: 'Failed to change status to PENDING. Please try again.',
+      });
+    }
+  };
+
   const openCreateModal = () => {
     setFormData({
       title: '',
@@ -335,6 +369,7 @@ export default function MusicReleasesPage() {
               onEdit={openEditModal}
               onDelete={handleDeleteRelease}
               onStatusChange={handleStatusChange}
+              onStatusDoubleClick={handleStatusDoubleClick}
             />
 
             {/* Bottom Pagination */}
