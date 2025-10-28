@@ -33,6 +33,7 @@ interface MusicReleaseState {
   setError: (error: string | null) => void;
   setFilters: (filters: MusicReleaseQueryParams) => void;
   setCurrentPage: (page: number) => void;
+  setPageSize: (pageSize: number) => void;
   setStatusCounts: (counts: Record<string, number>) => void;
 
   // Utility method for client-side pagination
@@ -86,11 +87,22 @@ export const useMusicReleaseStore = create<MusicReleaseState>()(
       setSelectedRelease: (selectedRelease) => set({ selectedRelease }),
       setLoading: (loading) => set({ loading }),
       setError: (error) => set({ error }),
-  setFilters: (filters) => set({ filters, currentPage: 1 }),
-      setCurrentPage: (currentPage) => set({ currentPage }),
-      setStatusCounts: (statusCounts) => set({ statusCounts }),
-
-      // Client-side pagination utility
+      setFilters: (filters) => set({ filters, currentPage: 1 }),
+      setCurrentPage: (currentPage) => {
+        set({ currentPage });
+        // Trigger pagination update after state change
+        setTimeout(() => {
+          get().updatePaginatedReleases();
+        }, 0);
+      },
+      setPageSize: (pageSize) => {
+        set({ pageSize, currentPage: 1 }, false, 'setPageSize');
+        // Trigger pagination update after state change
+        setTimeout(() => {
+          get().updatePaginatedReleases();
+        }, 0);
+      },
+      setStatusCounts: (statusCounts) => set({ statusCounts }),      // Client-side pagination utility
       updatePaginatedReleases: () => {
         const { allReleases, currentPage, pageSize } = get();
         const startIndex = (currentPage - 1) * pageSize;
