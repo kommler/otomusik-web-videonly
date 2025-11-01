@@ -85,7 +85,11 @@ const StatusBadge: React.FC<{
         {status}
       </span>
       {hasErrors && (
-        <Tooltip content={errorMessage}>
+        <Tooltip 
+          content={errorMessage}
+          position="right"
+          className="flex items-center justify-center p-1 hover:bg-red-50 dark:hover:bg-red-950 rounded transition-colors"
+        >
           <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0" />
         </Tooltip>
       )}
