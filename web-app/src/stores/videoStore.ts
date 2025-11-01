@@ -78,7 +78,7 @@ export const useVideoStore = create<VideoState>()(
       error: null,
       filters: initialFilters,
       currentPage: 1,
-      pageSize: 50,
+      pageSize: 100,
       
       // Basic setters
       setVideos: (videos) => set({ videos }),

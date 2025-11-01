@@ -78,7 +78,7 @@ export const useChannelStore = create<ChannelState>()(
       error: null,
       filters: initialFilters,
       currentPage: 1,
-      pageSize: 50,
+      pageSize: 100,
       
       // Basic setters
       setChannels: (channels) => set({ channels }),

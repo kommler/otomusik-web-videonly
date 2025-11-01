@@ -92,6 +92,8 @@ interface BaseFilterProps {
   activeFiltersCount: number;
   statusCounts?: Record<string, number>;
   totalFilteredCount?: number; // Nombre total d'enregistrements après filtrage (toutes pages)
+  onRefresh?: () => void;
+  loading?: boolean;
 }
 
 interface VideoFiltersProps extends BaseFilterProps {
@@ -244,19 +246,49 @@ export const FilterPanel: React.FC<FilterPanelProps> = (props) => {
             })}
           </div>
           
-          {/* Total Records Count - Use total filtered count if available, otherwise sum status counts */}
-          {(props.totalFilteredCount !== undefined || props.statusCounts) && (
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-medium">Total:</span>
-              <span className="ml-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md font-mono text-sm">
-                {props.totalFilteredCount !== undefined 
-                  ? props.totalFilteredCount.toLocaleString()
-                  : Object.values(props.statusCounts || {}).reduce((sum, count) => sum + count, 0).toLocaleString()
-                }
-              </span>
-              <span className="ml-1">records</span>
-            </div>
-          )}
+          {/* Controls section - Total count and refresh button */}
+          <div className="flex items-center justify-between">
+            {/* Total Records Count - Use total filtered count if available, otherwise sum status counts */}
+            {(props.totalFilteredCount !== undefined || props.statusCounts) && (
+              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Total:</span>
+                <span className="ml-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md font-mono text-sm">
+                  {props.totalFilteredCount !== undefined 
+                    ? props.totalFilteredCount.toLocaleString()
+                    : Object.values(props.statusCounts || {}).reduce((sum, count) => sum + count, 0).toLocaleString()
+                  }
+                </span>
+                <span className="ml-1">records</span>
+              </div>
+            )}
+
+            {/* Refresh button */}
+            {props.onRefresh && (
+              <button
+                onClick={props.onRefresh}
+                disabled={props.loading}
+                className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 
+                           bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 
+                           disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors"
+                title="Actualiser les données"
+              >
+                <svg
+                  className={`w-4 h-4 ${props.loading ? 'animate-spin' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                <span className="ml-1.5">Actualiser</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

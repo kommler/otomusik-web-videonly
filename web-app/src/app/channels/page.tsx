@@ -250,6 +250,12 @@ export default function ChannelsPage() {
     setFilters(newFilters);
   };
 
+  const handleRefresh = () => {
+    // Refresh all data
+    fetchChannels(filters);
+    fetchStatusCounts(filters);
+  };
+
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
@@ -278,7 +284,7 @@ export default function ChannelsPage() {
             onFiltersChange={setFilters}
             onClearFilters={() => {
               setFilters({
-                limit: 50,
+                limit: 100,
                 sort_by: 'updated_at',
                 sort_order: 'desc',
               });
@@ -292,6 +298,8 @@ export default function ChannelsPage() {
             type="channel"
             statusCounts={statusCounts}
             totalFilteredCount={totalCount}
+            onRefresh={handleRefresh}
+            loading={loading}
           />
         </div>
 

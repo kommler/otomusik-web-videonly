@@ -50,6 +50,7 @@ interface MusicReleaseFilterPanelProps {
   filters: MusicReleaseQueryParams;
   statusCounts: Record<string, number>;
   onFiltersChange: (filters: MusicReleaseQueryParams) => void;
+  onRefresh?: () => void;
   loading?: boolean;
   totalCount?: number;
 }
@@ -59,6 +60,7 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
   filters,
   statusCounts,
   onFiltersChange,
+  onRefresh,
   loading = false,
   totalCount = 0,
 }) => {
@@ -183,19 +185,47 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
             </div>
           </div>
 
-          {/* Total Records Count - mirrors FilterPanel layout */}
-          {(totalCount !== undefined || statusCounts) && (
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-medium">Total:</span>
-              <span className="ml-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md font-mono text-sm">
-                {totalCount !== undefined
-                  ? totalCount.toLocaleString()
-                  : Object.values(statusCounts || {}).reduce((sum, c) => sum + c, 0).toLocaleString()
-                }
-              </span>
-              <span className="ml-1">enregistrements</span>
-            </div>
-          )}
+          {/* Controls section - Total count and refresh button */}
+          <div className="flex items-center justify-between">
+            {/* Total Records Count - mirrors FilterPanel layout */}
+            {(totalCount !== undefined || statusCounts) && (
+              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Total:</span>
+                <span className="ml-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md font-mono text-sm">
+                  {totalCount !== undefined
+                    ? totalCount.toLocaleString()
+                    : Object.values(statusCounts || {}).reduce((sum, c) => sum + c, 0).toLocaleString()
+                  }
+                </span>
+                <span className="ml-1">enregistrements</span>
+              </div>
+            )}
+
+            {/* Refresh button */}
+            <button
+              onClick={onRefresh}
+              disabled={loading}
+              className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 
+                         bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 
+                         disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors"
+              title="Actualiser les données"
+            >
+              <svg
+                className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              <span className="ml-1.5">Actualiser</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

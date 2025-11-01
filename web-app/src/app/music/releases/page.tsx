@@ -309,6 +309,12 @@ export default function MusicReleasesPage() {
     setFilters(newFilters);
   };
 
+  const handleRefresh = () => {
+    // Refresh all data
+    fetchReleases(filters);
+    fetchStatusCounts(filters);
+  };
+
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
@@ -339,6 +345,7 @@ export default function MusicReleasesPage() {
             onFiltersChange={setFilters}
             loading={loading}
             totalCount={totalCount}
+            onRefresh={handleRefresh}
           />
         </div>
 

@@ -54,7 +54,7 @@ interface MusicReleaseState {
   resetFilters: () => void;
 }
 
-const ITEMS_PER_PAGE = 25;
+const ITEMS_PER_PAGE = 100;
 
 export const useMusicReleaseStore = create<MusicReleaseState>()(
   devtools(
