@@ -24,11 +24,16 @@ const getPlaylistStatusColors = (status: string) => {
         count: 'bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100'
       };
     case 'downloading':
-    case 'current':
       return {
         normal: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
         active: 'bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100',
         count: 'bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100'
+      };
+    case 'current':
+      return {
+        normal: 'bg-sky-100 text-sky-800 dark:bg-sky-900/20 dark:text-sky-400',
+        active: 'bg-sky-200 text-sky-900 dark:bg-sky-800 dark:text-sky-100',
+        count: 'bg-sky-200 text-sky-900 dark:bg-sky-800 dark:text-sky-100'
       };
     case 'analyzed':
       return {
