@@ -26,7 +26,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const triggerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const showTooltip = () => {
+  const showTooltip = (event?: MouseEvent) => {
     if (disabled || !content) return;
     
     if (timeoutRef.current) {
@@ -34,63 +34,59 @@ export const Tooltip: React.FC<TooltipProps> = ({
     }
     
     timeoutRef.current = setTimeout(() => {
-      if (triggerRef.current) {
-        const rect = triggerRef.current.getBoundingClientRect();
-        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      // Si nous avons un événement de souris, utilisons la position du curseur
+      if (event) {
+        const tooltipWidth = 320;
+        const tooltipHeight = 80;
+        const offset = 10;
         
-        // Calculer les dimensions approximatives du tooltip
-        const tooltipWidth = 300; // max-w-xs approximation
-        const tooltipHeight = 60; // estimation pour quelques lignes
-        
-        let x = rect.left + scrollX;
-        let y = rect.top + scrollY;
-        
-        // Position initiale selon la position demandée
-        switch (position) {
-          case 'top':
-            x += rect.width / 2;
-            y -= tooltipHeight + 8;
-            break;
-          case 'bottom':
-            x += rect.width / 2;
-            y += rect.height + 8;
-            break;
-          case 'left':
-            x -= tooltipWidth + 8;
-            y += rect.height / 2;
-            break;
-          case 'right':
-            x += rect.width + 8;
-            y += rect.height / 2;
-            break;
-        }
+        let x = event.clientX + offset;
+        let y = event.clientY - tooltipHeight - offset;
         
         // Ajustements pour rester dans la fenêtre visible
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
         
         // Ajustement horizontal
+        if (x + tooltipWidth > windowWidth - 10) {
+          x = event.clientX - tooltipWidth - offset;
+        }
         if (x < 10) {
           x = 10;
-        } else if (x + tooltipWidth > windowWidth - 10) {
-          x = windowWidth - tooltipWidth - 10;
         }
         
         // Ajustement vertical
         if (y < 10) {
-          y = 10;
-        } else if (y + tooltipHeight > windowHeight - 10) {
+          y = event.clientY + offset;
+        }
+        if (y + tooltipHeight > windowHeight - 10) {
           y = windowHeight - tooltipHeight - 10;
         }
         
         setTooltipPosition({ x, y });
-        setIsVisible(true);
+      } else if (triggerRef.current) {
+        // Fallback à l'ancienne méthode si pas d'événement souris
+        const rect = triggerRef.current.getBoundingClientRect();
+        const tooltipWidth = 320;
+        const tooltipHeight = 80;
+        
+        let x = rect.left + rect.width / 2 - tooltipWidth / 2;
+        let y = rect.top - tooltipHeight - 8;
+        
+        // Ajustements pour rester dans la fenêtre visible
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        
+        if (x < 10) x = 10;
+        if (x + tooltipWidth > windowWidth - 10) x = windowWidth - tooltipWidth - 10;
+        if (y < 10) y = rect.bottom + 8;
+        
+        setTooltipPosition({ x, y });
       }
+      
+      setIsVisible(true);
     }, delay);
-  };
-
-  const hideTooltip = () => {
+  };  const hideTooltip = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -106,18 +102,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
   }, []);
 
   const getPositionClasses = () => {
-    switch (position) {
-      case 'top':
-        return 'transform -translate-x-1/2 -translate-y-full';
-      case 'bottom':
-        return 'transform -translate-x-1/2';
-      case 'left':
-        return 'transform -translate-x-full -translate-y-1/2';
-      case 'right':
-        return 'transform -translate-y-1/2';
-      default:
-        return 'transform -translate-x-1/2 -translate-y-full';
-    }
+    // Ne pas utiliser de transform car nous calculons déjà la position exacte
+    return '';
   };
 
   const getArrowClasses = () => {
@@ -162,9 +148,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
       <div
         ref={triggerRef}
         className={cn('inline-block', className)}
-        onMouseEnter={showTooltip}
+        onMouseEnter={(e) => showTooltip(e.nativeEvent)}
         onMouseLeave={hideTooltip}
-        onFocus={showTooltip}
+        onFocus={() => showTooltip()}
         onBlur={hideTooltip}
       >
         {children}
