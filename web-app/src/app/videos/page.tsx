@@ -32,16 +32,16 @@ const videoStatusOptions = [
   { value: 'SKIP', label: 'Skip' },
 ];
 
-// Available resolution options
+// Available resolution options (matching yt-dlp format values)
 const resolutionOptions = [
-  { value: '144p', label: '144p' },
-  { value: '240p', label: '240p' },
-  { value: '360p', label: '360p' },
-  { value: '480p', label: '480p' },
-  { value: '720p', label: '720p (HD)' },
-  { value: '1080p', label: '1080p (Full HD)' },
-  { value: '1440p', label: '1440p (2K)' },
-  { value: '2160p', label: '2160p (4K)' },
+  { value: '144', label: '144p' },
+  { value: '240', label: '240p' },
+  { value: '360', label: '360p' },
+  { value: '480', label: '480p' },
+  { value: '720', label: '720p (HD)' },
+  { value: '1080', label: '1080p (Full HD)' },
+  { value: '1440', label: '1440p (2K)' },
+  { value: '2160', label: '2160p (4K)' },
   { value: 'best', label: 'Best available' },
   { value: 'worst', label: 'Worst available' },
 ];
