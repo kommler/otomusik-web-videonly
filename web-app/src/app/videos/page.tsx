@@ -18,6 +18,7 @@ interface VideoFormData {
   duration: number;
   view_count: number;
   status: string;
+  resolution: string;
 }
 
 // Available video status options
@@ -29,6 +30,20 @@ const videoStatusOptions = [
   { value: 'ERROR', label: 'Error' },
   { value: 'EXTRACTING', label: 'Extracting' },
   { value: 'SKIP', label: 'Skip' },
+];
+
+// Available resolution options
+const resolutionOptions = [
+  { value: '144p', label: '144p' },
+  { value: '240p', label: '240p' },
+  { value: '360p', label: '360p' },
+  { value: '480p', label: '480p' },
+  { value: '720p', label: '720p (HD)' },
+  { value: '1080p', label: '1080p (Full HD)' },
+  { value: '1440p', label: '1440p (2K)' },
+  { value: '2160p', label: '2160p (4K)' },
+  { value: 'best', label: 'Best available' },
+  { value: 'worst', label: 'Worst available' },
 ];
 
 export default function VideosPage() {
@@ -64,6 +79,7 @@ export default function VideosPage() {
     duration: 0,
     view_count: 0,
     status: '',
+    resolution: '',
   });
   const [formLoading, setFormLoading] = useState(false);
 
@@ -90,6 +106,7 @@ export default function VideosPage() {
         duration: formData.duration || null,
         view_count: formData.view_count || null,
         status: formData.status || null,
+        resolution: formData.resolution || null,
       };
 
       const newVideo = await createVideo(videoData);
@@ -104,6 +121,7 @@ export default function VideosPage() {
           duration: 0,
           view_count: 0,
           status: '',
+          resolution: '',
         });
 
         addNotification({
@@ -140,6 +158,7 @@ export default function VideosPage() {
         duration: formData.duration || null,
         view_count: formData.view_count || null,
         status: formData.status || null,
+        resolution: formData.resolution || null,
       };
 
       const updatedVideo = await updateVideo(editingVideo.id, videoData);
@@ -267,6 +286,7 @@ export default function VideosPage() {
       duration: 0,
       view_count: 0,
       status: '',
+      resolution: '',
     });
     setShowCreateModal(true);
   };
@@ -281,6 +301,7 @@ export default function VideosPage() {
       duration: video.duration || video.duration_seconds || 0,
       view_count: video.view_count || 0,
       status: video.status || '',
+      resolution: video.resolution || '',
     });
     setShowEditModal(true);
   };
@@ -460,6 +481,19 @@ export default function VideosPage() {
               required
             />
 
+            <FormSelect
+              label="Resolution"
+              value={formData.resolution}
+              onChange={(e) => handleFormChange('resolution', e.target.value)}
+            >
+              <option value="">Select resolution</option>
+              {resolutionOptions.map((resolution) => (
+                <option key={resolution.value} value={resolution.value}>
+                  {resolution.label}
+                </option>
+              ))}
+            </FormSelect>
+
             <div className="grid grid-cols-2 gap-4">
               <FormInput
                 label="Duration (seconds)"
@@ -533,6 +567,19 @@ export default function VideosPage() {
               {videoStatusOptions.map((status) => (
                 <option key={status.value} value={status.value}>
                   {status.label}
+                </option>
+              ))}
+            </FormSelect>
+
+            <FormSelect
+              label="Resolution"
+              value={formData.resolution}
+              onChange={(e) => handleFormChange('resolution', e.target.value)}
+            >
+              <option value="">Select resolution</option>
+              {resolutionOptions.map((resolution) => (
+                <option key={resolution.value} value={resolution.value}>
+                  {resolution.label}
                 </option>
               ))}
             </FormSelect>
