@@ -537,6 +537,7 @@ export default function MusicVideosPage() {
               Cancel
             </Button>
             <Button
+              variant="primary"
               onClick={handleEditVideo}
               disabled={formLoading || !formData.title || !formData.url}
             >

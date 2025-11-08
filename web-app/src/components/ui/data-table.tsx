@@ -31,6 +31,10 @@ interface DataTableProps<T> {
   onView?: (row: T) => void;
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
+  onCustomAction?: (row: T) => void;
+  customActionIcon?: React.ReactNode;
+  customActionTitle?: string;
+  customActionClassName?: string;
   showActions?: boolean;
   emptyMessage?: string;
   className?: string;
@@ -47,6 +51,10 @@ export function DataTable<T extends Record<string, any>>({
   onView,
   onEdit,
   onDelete,
+  onCustomAction,
+  customActionIcon,
+  customActionTitle = 'Custom Action',
+  customActionClassName = '',
   showActions = false,
   emptyMessage = 'No data available',
   className,
@@ -82,7 +90,7 @@ export function DataTable<T extends Record<string, any>>({
   // Add actions column if needed
   const allColumns = useMemo(() => {
     const cols = [...columns];
-    if (showActions && (onView || onEdit || onDelete)) {
+    if (showActions && (onView || onEdit || onDelete || onCustomAction)) {
       cols.push({
         key: 'actions',
         title: 'Actions',
@@ -120,6 +128,21 @@ export function DataTable<T extends Record<string, any>>({
                 <span className="sr-only">Edit</span>
               </Button>
             )}
+            {onCustomAction && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCustomAction(row);
+                }}
+                className={cn("h-8 w-8 cursor-pointer", customActionClassName)}
+                title={customActionTitle}
+              >
+                {customActionIcon}
+                <span className="sr-only">{customActionTitle}</span>
+              </Button>
+            )}
             {onDelete && (
               <Button
                 variant="ghost"
@@ -140,7 +163,7 @@ export function DataTable<T extends Record<string, any>>({
       } as Column<T>);
     }
     return cols;
-  }, [columns, showActions, onView, onEdit, onDelete]);
+  }, [columns, showActions, onView, onEdit, onDelete, onCustomAction, customActionIcon, customActionTitle, customActionClassName]);
 
   if (loading) {
     return (

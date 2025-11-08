@@ -7,6 +7,10 @@ import { MusicChannelFilterPanel } from '@/components/filters/MusicChannelFilter
 import { useMusicChannelStore } from '@/stores';
 import { MusicChannel, MusicChannelQueryParams } from '@/types/api';
 import { Pagination } from '@/components/ui/pagination';
+import { Modal } from '@/components/ui/modal';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { LoadingSpinner } from '@/components/ui/loading';
 
 const ITEMS_PER_PAGE = 25;
 
@@ -23,6 +27,15 @@ const musicChannelFilterConfig = {
   ],
 };
 
+// Form data interface for editing
+interface ChannelFormData {
+  channel_name: string;
+  url: string;
+  uploader: string;
+  refresh_interval_days: number | null;
+  scrap_options: string;
+}
+
 export default function MusicChannelsPage() {
   const {
     channels,
@@ -33,11 +46,27 @@ export default function MusicChannelsPage() {
     filters,
     currentPage,
     pageSize,
+    updating,
     setFilters,
     setCurrentPage,
     fetchChannels,
+    updateChannel,
     deleteChannel,
   } = useMusicChannelStore();
+
+  // Modal states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState<MusicChannel | null>(null);
+  const [formLoading, setFormLoading] = useState(false);
+  
+  // Form data
+  const [formData, setFormData] = useState<ChannelFormData>({
+    channel_name: '',
+    url: '',
+    uploader: '',
+    refresh_interval_days: null,
+    scrap_options: '',
+  });
 
   // Charger les données initiales
   useEffect(() => {
@@ -72,8 +101,70 @@ export default function MusicChannelsPage() {
   };
 
   const handleEdit = (channel: MusicChannel) => {
-    // TODO: Implement edit modal
-    console.log('Edit channel:', channel);
+    setSelectedChannel(channel);
+    setFormData({
+      channel_name: channel.channel_name || '',
+      url: channel.url || '',
+      uploader: channel.uploader || '',
+      refresh_interval_days: channel.refresh_interval_days,
+      scrap_options: channel.scrap_options || '',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditChannel = async () => {
+    if (!selectedChannel?.id) return;
+
+    setFormLoading(true);
+    try {
+      const updateData = {
+        ...selectedChannel,
+        channel_name: formData.channel_name,
+        url: formData.url,
+        uploader: formData.uploader,
+        refresh_interval_days: formData.refresh_interval_days,
+        scrap_options: formData.scrap_options,
+      };
+      
+      await updateChannel(selectedChannel.id, updateData);
+      setShowEditModal(false);
+      setSelectedChannel(null);
+      
+      // Reset form
+      setFormData({
+        channel_name: '',
+        url: '',
+        uploader: '',
+        refresh_interval_days: null,
+        scrap_options: '',
+      });
+    } catch (error) {
+      console.error('Error updating music channel:', error);
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleSetWaiting = async (channel: MusicChannel) => {
+    if (!channel.id) return;
+    
+    if (confirm(`Définir le statut du canal "${channel.channel_name}" sur WAITING ?`)) {
+      setFormLoading(true);
+      try {
+        const updateData = {
+          ...channel,
+          status: 'WAITING',
+        };
+        
+        await updateChannel(channel.id, updateData);
+        // Refresh current page data
+        fetchChannels(filters);
+      } catch (error) {
+        console.error('Error updating music channel status:', error);
+      } finally {
+        setFormLoading(false);
+      }
+    }
   };
 
   const handleDelete = async (channel: MusicChannel) => {
@@ -168,6 +259,7 @@ export default function MusicChannelsPage() {
             onRowClick={handleRowClick}
             onView={handleView}
             onEdit={handleEdit}
+            onSetWaiting={handleSetWaiting}
             onDelete={handleDelete}
           />
         </div>
@@ -184,6 +276,115 @@ export default function MusicChannelsPage() {
             />
           </div>
         )}
+
+        {/* Modal d'édition */}
+        <Modal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          title="Modifier le Canal Musical"
+          size="lg"
+        >
+          <div className="space-y-4">
+            {/* Nom du canal */}
+            <div>
+              <label htmlFor="channel_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Nom du Canal *
+              </label>
+              <Input
+                id="channel_name"
+                type="text"
+                value={formData.channel_name}
+                onChange={(e) => setFormData({ ...formData, channel_name: e.target.value })}
+                placeholder="Nom du canal musical"
+                disabled={formLoading}
+                required
+              />
+            </div>
+
+            {/* URL */}
+            <div>
+              <label htmlFor="url" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                URL *
+              </label>
+              <Input
+                id="url"
+                type="url"
+                value={formData.url}
+                onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                placeholder="https://www.youtube.com/@channel"
+                disabled={formLoading}
+                required
+              />
+            </div>
+
+            {/* Uploader */}
+            <div>
+              <label htmlFor="uploader" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Uploader
+              </label>
+              <Input
+                id="uploader"
+                type="text"
+                value={formData.uploader}
+                onChange={(e) => setFormData({ ...formData, uploader: e.target.value })}
+                placeholder="Nom de l'uploader"
+                disabled={formLoading}
+              />
+            </div>
+
+            {/* Intervalle de rafraîchissement */}
+            <div>
+              <label htmlFor="refresh_interval" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Intervalle de Rafraîchissement (jours)
+              </label>
+              <Input
+                id="refresh_interval"
+                type="number"
+                min="1"
+                value={formData.refresh_interval_days?.toString() || ''}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  refresh_interval_days: e.target.value ? parseInt(e.target.value) : null 
+                })}
+                placeholder="7"
+                disabled={formLoading}
+              />
+            </div>
+
+            {/* Options de scraping */}
+            <div>
+              <label htmlFor="scrap_options" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Options de Scraping
+              </label>
+              <Input
+                id="scrap_options"
+                type="text"
+                value={formData.scrap_options}
+                onChange={(e) => setFormData({ ...formData, scrap_options: e.target.value })}
+                placeholder="Options JSON pour le scraping"
+                disabled={formLoading}
+              />
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <Button
+              variant="outline"
+              onClick={() => setShowEditModal(false)}
+              disabled={formLoading}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleEditChannel}
+              disabled={formLoading || !formData.channel_name || !formData.url}
+            >
+              {formLoading ? <LoadingSpinner size="sm" /> : 'Modifier le Canal'}
+            </Button>
+          </div>
+        </Modal>
       </div>
     </Layout>
   );
