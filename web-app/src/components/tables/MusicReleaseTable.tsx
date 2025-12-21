@@ -64,11 +64,20 @@ const StatusBadge: React.FC<{
   const hasErrors = errors && Object.keys(errors).length > 0;
   const errorMessage = formatErrorMessage(errors);
   const isFailed = status?.toLowerCase() === 'failed';
+  const isDownloaded = status?.toLowerCase() === 'downloaded';
+  const isClickable = (isFailed || isDownloaded) && release && onStatusDoubleClick;
 
   const handleDoubleClick = () => {
-    if (isFailed && release && onStatusDoubleClick) {
+    if (isClickable) {
       onStatusDoubleClick(release);
     }
+  };
+
+  const getTooltipMessage = () => {
+    if (!onStatusDoubleClick) return undefined;
+    if (isFailed) return 'Double-cliquez pour passer le statut en PENDING';
+    if (isDownloaded) return 'Double-cliquez pour passer le statut en WAITING';
+    return undefined;
   };
 
   return (
@@ -77,10 +86,10 @@ const StatusBadge: React.FC<{
         className={cn(
           "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all duration-200",
           getStatusColor(status),
-          isFailed && onStatusDoubleClick ? 'cursor-pointer hover:shadow-md hover:scale-105 select-none' : ''
+          isClickable ? 'cursor-pointer hover:shadow-md hover:scale-105 select-none' : ''
         )}
         onDoubleClick={handleDoubleClick}
-        title={isFailed && onStatusDoubleClick ? 'Double-cliquez pour passer le statut en PENDING' : undefined}
+        title={getTooltipMessage()}
       >
         {status}
       </span>

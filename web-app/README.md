@@ -20,7 +20,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ### Status Management
 - **Playlists**: Double-click on any status badge to change it to "WAITING"
-- **Music Releases**: Double-click on "FAILED" status badges to change them to "PENDING"
+- **Music Releases**: 
+  - Double-click on "FAILED" status badges to change them to "PENDING"
+  - Double-click on "DOWNLOADED" status badges to change them to "WAITING"
 
 ### Pages Available
 - `/playlists` - Manage playlists with status updates

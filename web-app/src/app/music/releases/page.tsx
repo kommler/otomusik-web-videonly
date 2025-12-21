@@ -216,15 +216,28 @@ export default function MusicReleasesPage() {
     }
   };
 
-  // Handle double-click on FAILED status to change to PENDING
+  // Handle double-click on FAILED status to change to PENDING or DOWNLOADED to change to WAITING
   const handleStatusDoubleClick = async (release: ReleaseSchema) => {
-    if (!release.id || release.status !== 'FAILED') return;
+    if (!release.id) return;
+    
+    let newStatus: string | null = null;
+    let fromStatus: string | null = null;
+    
+    if (release.status === 'FAILED') {
+      newStatus = 'PENDING';
+      fromStatus = 'FAILED';
+    } else if (release.status === 'DOWNLOADED') {
+      newStatus = 'WAITING';
+      fromStatus = 'DOWNLOADED';
+    } else {
+      return; // No action for other statuses
+    }
 
     try {
-      // Create updated release data with PENDING status
+      // Create updated release data with new status
       const releaseData: ReleaseSchema = {
         ...release,
-        status: 'PENDING',
+        status: newStatus,
       };
 
       const updatedRelease = await updateRelease(release.id, releaseData);
@@ -232,8 +245,8 @@ export default function MusicReleasesPage() {
       if (updatedRelease) {
         addNotification({
           type: 'success',
-          title: 'Status Changed to PENDING',
-          message: `Release "${release.title}" status changed from FAILED to PENDING`,
+          title: `Status Changed to ${newStatus}`,
+          message: `Release "${release.title}" status changed from ${fromStatus} to ${newStatus}`,
         });
 
         // Refresh data to reflect changes
@@ -245,7 +258,7 @@ export default function MusicReleasesPage() {
       addNotification({
         type: 'error',
         title: 'Status Update Failed',
-        message: 'Failed to change status to PENDING. Please try again.',
+        message: `Failed to change status to ${newStatus}. Please try again.`,
       });
     }
   };
