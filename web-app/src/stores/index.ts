@@ -5,6 +5,7 @@ export { usePlaylistStore } from './playlistStore';
 export { useMusicChannelStore } from './musicChannelStore';
 export { useMusicReleaseStore } from './musicReleaseStore';
 export { useMusicVideoStore } from './musicVideoStore';
+export { useMusicPlaylistStore } from './musicPlaylistStore';
 export { useUIStore, useTheme, useNotifications, useModals, useSidebar } from './uiStore';
 
 // Types re-export for convenience

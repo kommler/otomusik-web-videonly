@@ -45,6 +45,7 @@ const navigation: (NavigationItem | NavigationSection)[] = [
     collapsedLabel: 'MUS',
     items: [
       { name: 'Music Channels', href: '/music/channels', icon: RadioIcon },
+      { name: 'Music Playlists', href: '/music/playlists', icon: QueueListIcon },
       { name: 'Music Releases', href: '/music/releases', icon: RectangleStackIcon },
       { name: 'Music Videos', href: '/music/videos', icon: PlayIcon },
     ]
