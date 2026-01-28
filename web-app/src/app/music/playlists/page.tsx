@@ -183,21 +183,24 @@ export default function MusicPlaylistsPage() {
 
   const handleDeletePlaylist = async (playlist: PlaylistSchema) => {
     if (!playlist.id) return;
-    if (!confirm(`Are you sure you want to delete "${playlist.name}"?`)) return;
+    
+    const displayName = playlist.name || playlist.channel_name || `Playlist #${playlist.id}`;
+    
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer "${displayName}" ?`)) return;
 
     const success = await deletePlaylist(playlist.id);
 
     if (success) {
       addNotification({
         type: 'success',
-        title: 'Playlist Deleted',
-        message: `Playlist "${playlist.name}" has been deleted successfully.`,
+        title: 'Playlist supprimée',
+        message: `La playlist "${displayName}" a été supprimée avec succès.`,
       });
     } else {
       addNotification({
         type: 'error',
-        title: 'Deletion Failed',
-        message: 'Failed to delete the playlist. Please try again.',
+        title: 'Échec de la suppression',
+        message: 'Échec de la suppression de la playlist. Veuillez réessayer.',
       });
     }
   };

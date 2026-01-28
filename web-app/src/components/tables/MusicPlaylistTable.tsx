@@ -234,6 +234,10 @@ export const MusicPlaylistTable: React.FC<MusicPlaylistTableProps> = ({
       sortKey={sortKey}
       sortDirection={sortDirection}
       onRowClick={onRowClick}
+      onView={onView}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      showActions={!!(onView || onEdit || onDelete)}
       emptyMessage="Aucune playlist musicale trouvée"
     />
   );
