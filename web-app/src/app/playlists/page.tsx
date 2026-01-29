@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Layout } from '../../components/layout/Layout';
 import { PlaylistFilterPanel } from '../../components/filters/PlaylistFilterPanel';
 import { PlaylistTable } from '../../components/tables/PlaylistTable';
@@ -11,6 +11,7 @@ import { FormInput, FormTextarea, FormSelect } from '../../components/ui/form';
 import { usePlaylistStore } from '../../stores';
 import { PlaylistSchema, PlaylistQueryParams } from '../../types/api';
 import { useUIStore } from '../../stores/uiStore';
+import { useInitialLoad, useFilteredLoad } from '../../lib/hooks';
 
 // Configuration des filtres spécifiques aux playlists
 const playlistFilterConfig = {
@@ -93,17 +94,17 @@ const PlaylistsPage: React.FC = () => {
     status: '',
   });
 
-  // Charger les données initiales
-  useEffect(() => {
-    fetchPlaylists();
-    fetchStatusCounts();
-  }, [fetchPlaylists, fetchStatusCounts]);
+  // Chargement initial une seule fois (requêtes en parallèle)
+  useInitialLoad([
+    () => fetchPlaylists(),
+    () => fetchStatusCounts(),
+  ]);
 
-  // Recharger les données quand les filtres changent
-  useEffect(() => {
-    fetchPlaylists();
-    fetchStatusCounts();
-  }, [filters, fetchPlaylists, fetchStatusCounts]);
+  // Re-fetch seulement quand les filtres changent (skip le premier render)
+  useFilteredLoad(filters, [
+    () => fetchPlaylists(),
+    () => fetchStatusCounts(),
+  ], { skipInitial: true });
 
   // Form handling functions
   const handleFormChange = (field: string, value: any) => {

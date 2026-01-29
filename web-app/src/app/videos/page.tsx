@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Layout } from '@/components/layout/Layout';
 import { VideoTable } from '@/components/tables';
@@ -9,6 +9,7 @@ import { Button, LoadingSpinner, Modal, Pagination } from '@/components/ui';
 import { FormInput, FormTextarea, FormSelect } from '@/components/ui/form';
 import { useVideoStore, useChannelStore, useUIStore } from '@/stores';
 import { VideoSchema } from '@/types/api';
+import { useInitialLoad, useFilteredLoad } from '@/lib/hooks';
 
 interface VideoFormData {
   oto_channel_id: number | null;
@@ -83,17 +84,18 @@ export default function VideosPage() {
   });
   const [formLoading, setFormLoading] = useState(false);
 
-  useEffect(() => {
-    fetchVideos();
-    fetchChannels();
-    fetchStatusCounts();
-  }, [fetchVideos, fetchChannels, fetchStatusCounts]);
+  // Chargement initial une seule fois (requêtes en parallèle)
+  useInitialLoad([
+    () => fetchVideos(),
+    () => fetchChannels(),
+    () => fetchStatusCounts(),
+  ]);
 
-  // Re-fetch videos and status counts when filters change
-  useEffect(() => {
-    fetchVideos(filters);
-    fetchStatusCounts(filters);
-  }, [filters, fetchVideos, fetchStatusCounts]);
+  // Re-fetch seulement quand les filtres changent (skip le premier render)
+  useFilteredLoad(filters, [
+    (f) => fetchVideos(f),
+    (f) => fetchStatusCounts(f),
+  ], { skipInitial: true });
 
   const handleCreateVideo = async () => {
     setFormLoading(true);

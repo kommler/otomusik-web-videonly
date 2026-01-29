@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { MusicChannelTable } from '@/components/tables';
 import { MusicChannelFilterPanel } from '@/components/filters/MusicChannelFilterPanel';
@@ -11,6 +11,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/ui/loading';
+import { useInitialLoad } from '@/lib/hooks';
 
 const ITEMS_PER_PAGE = 25;
 
@@ -68,10 +69,8 @@ export default function MusicChannelsPage() {
     scrap_options: '',
   });
 
-  // Charger les données initiales
-  useEffect(() => {
-    fetchChannels();
-  }, [fetchChannels]);
+  // Chargement initial une seule fois
+  useInitialLoad([() => fetchChannels()]);
 
   // Gestion des changements de filtres
   const handleFiltersChange = (newFilters: MusicChannelQueryParams) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Layout } from '@/components/layout/Layout';
 import { MusicReleaseTable } from '@/components/tables';
@@ -9,6 +9,7 @@ import { Button, LoadingSpinner, Modal, Pagination } from '@/components/ui';
 import { FormInput, FormTextarea, FormSelect } from '@/components/ui/form';
 import { useMusicReleaseStore, useMusicChannelStore, useUIStore } from '@/stores';
 import { ReleaseSchema, MusicReleaseQueryParams } from '@/types/api';
+import { useInitialLoad, useFilteredLoad } from '@/lib/hooks';
 
 interface ReleaseFormData {
   title: string;
@@ -67,17 +68,18 @@ export default function MusicReleasesPage() {
   });
   const [formLoading, setFormLoading] = useState(false);
 
-  useEffect(() => {
-    fetchReleases();
-    fetchChannels();
-    fetchStatusCounts();
-  }, [fetchReleases, fetchChannels, fetchStatusCounts]);
+  // Chargement initial une seule fois (requêtes en parallèle)
+  useInitialLoad([
+    () => fetchReleases(),
+    () => fetchChannels(),
+    () => fetchStatusCounts(),
+  ]);
 
-  // Re-fetch releases and status counts when filters change
-  useEffect(() => {
-    fetchReleases(filters);
-    fetchStatusCounts(filters);
-  }, [filters, fetchReleases, fetchStatusCounts]);
+  // Re-fetch seulement quand les filtres changent (skip le premier render)
+  useFilteredLoad(filters, [
+    (f) => fetchReleases(f),
+    (f) => fetchStatusCounts(f),
+  ], { skipInitial: true });
 
   const handleCreateRelease = async () => {
     setFormLoading(true);

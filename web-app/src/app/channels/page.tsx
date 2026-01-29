@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Layout } from '@/components/layout/Layout';
 import { ChannelTable } from '@/components/tables';
@@ -9,6 +9,7 @@ import { Button, LoadingSpinner, Modal, Pagination } from '@/components/ui';
 import { FormInput, FormTextarea } from '@/components/ui/form';
 import { useChannelStore, useUIStore } from '@/stores';
 import { ChannelSchema } from '@/types/api';
+import { useInitialLoad, useFilteredLoad } from '@/lib/hooks';
 
 interface ChannelFormData {
   name: string;
@@ -67,16 +68,17 @@ export default function ChannelsPage() {
   });
   const [formLoading, setFormLoading] = useState(false);
 
-  useEffect(() => {
-    fetchChannels();
-    fetchStatusCounts();
-  }, [fetchChannels, fetchStatusCounts]);
+  // Chargement initial une seule fois (requêtes en parallèle)
+  useInitialLoad([
+    () => fetchChannels(),
+    () => fetchStatusCounts(),
+  ]);
 
-  // Re-fetch channels and status counts when filters change
-  useEffect(() => {
-    fetchChannels();
-    fetchStatusCounts(filters);
-  }, [filters, fetchChannels, fetchStatusCounts]);
+  // Re-fetch seulement quand les filtres changent (skip le premier render)
+  useFilteredLoad(filters, [
+    (f) => fetchChannels(),
+    (f) => fetchStatusCounts(f),
+  ], { skipInitial: true });
 
   const handleCreateChannel = async () => {
     setFormLoading(true);

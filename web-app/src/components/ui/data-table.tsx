@@ -260,3 +260,6 @@ export function DataTable<T extends Record<string, any>>({
     </div>
   );
 }
+
+// Memoized version to prevent unnecessary re-renders
+export const MemoizedDataTable = React.memo(DataTable) as typeof DataTable;
