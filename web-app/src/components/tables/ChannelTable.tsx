@@ -1,15 +1,198 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { 
-  TvIcon, 
-  UsersIcon, 
-  PlayIcon, 
-  EyeIcon,
-  CalendarIcon 
-} from '@heroicons/react/24/outline';
+import { TvIcon, UsersIcon, PlayIcon, EyeIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { ChannelSchema } from '@/types/api';
-import { DataTable } from '@/components/ui/data-table';
-import { cn } from '@/lib/utils';
+import { StatusBadge } from '../ui';
+import {
+  createTableComponent,
+  createNumberColumn,
+  ColumnDef,
+} from './BaseTable';
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+const formatNumber = (num?: number | null): string => {
+  if (!num) return '-';
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+  return num.toLocaleString();
+};
+
+// ============================================================================
+// Custom Columns
+// ============================================================================
+
+const createChannelNameColumn = (): ColumnDef<ChannelSchema> => ({
+  key: 'name',
+  title: 'Channel',
+  sortable: true,
+  width: '250px',
+  render: (name: unknown, channel: ChannelSchema) => {
+    const nameStr = name as string | null;
+    return (
+      <div className="flex items-center space-x-3">
+        <div className="flex-shrink-0">
+          <TvIcon className="h-5 w-5 text-gray-400" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+            {nameStr || channel.uploader || 'Unknown Channel'}
+          </p>
+          {channel.channel_url && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              {new URL(channel.channel_url).hostname}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  },
+});
+
+const createTopicColumn = (): ColumnDef<ChannelSchema> => ({
+  key: 'topic',
+  title: 'Topic',
+  sortable: true,
+  width: '150px',
+  render: (topic: unknown) => (
+    <span className="text-sm text-gray-900 dark:text-white">
+      {(topic as string) || '-'}
+    </span>
+  ),
+});
+
+const createResolutionColumn = (): ColumnDef<ChannelSchema> => ({
+  key: 'resolution',
+  title: 'Resolution',
+  sortable: true,
+  width: '120px',
+  render: (resolution: unknown) => (
+    <span className="text-sm text-gray-900 dark:text-white">
+      {(resolution as string) || '-'}
+    </span>
+  ),
+});
+
+const createVideoCountColumn = (): ColumnDef<ChannelSchema> => ({
+  key: 'video_count',
+  title: 'Videos',
+  sortable: true,
+  width: '100px',
+  render: (videoCount: unknown, channel: ChannelSchema) => (
+    <div className="flex items-center space-x-1">
+      <PlayIcon className="h-4 w-4 text-gray-400" />
+      <span className="text-sm text-gray-900 dark:text-white">
+        {formatNumber((videoCount as number) || channel.count_videos)}
+      </span>
+    </div>
+  ),
+});
+
+const createSubscriberColumn = (): ColumnDef<ChannelSchema> => ({
+  key: 'subscriber_count',
+  title: 'Subscribers',
+  sortable: true,
+  width: '120px',
+  render: (subscriberCount: unknown) => (
+    <div className="flex items-center space-x-1">
+      <UsersIcon className="h-4 w-4 text-gray-400" />
+      <span className="text-sm text-gray-900 dark:text-white">
+        {formatNumber(subscriberCount as number)}
+      </span>
+    </div>
+  ),
+});
+
+const createViewCountColumn = (): ColumnDef<ChannelSchema> => ({
+  key: 'view_count',
+  title: 'Total Views',
+  sortable: true,
+  width: '120px',
+  render: (viewCount: unknown) => (
+    <div className="flex items-center space-x-1">
+      <EyeIcon className="h-4 w-4 text-gray-400" />
+      <span className="text-sm text-gray-900 dark:text-white">
+        {formatNumber(viewCount as number)}
+      </span>
+    </div>
+  ),
+});
+
+const createChannelStatusColumn = (): ColumnDef<ChannelSchema> => ({
+  key: 'status',
+  title: 'Status',
+  sortable: true,
+  width: '120px',
+  render: (status: unknown) => (
+    <StatusBadge status={(status as string) || 'UNKNOWN'} />
+  ),
+});
+
+const createRefreshIntervalColumn = (): ColumnDef<ChannelSchema> => ({
+  key: 'refresh_interval_days',
+  title: 'Refresh Interval',
+  sortable: true,
+  width: '120px',
+  render: (refreshInterval: unknown) => {
+    const interval = refreshInterval as number | null;
+    return (
+      <span className="text-sm text-gray-900 dark:text-white">
+        {interval ? `${interval} days` : '-'}
+      </span>
+    );
+  },
+});
+
+const createRefreshedAtColumn = (): ColumnDef<ChannelSchema> => ({
+  key: 'refreshed_at',
+  title: 'Last Refresh',
+  sortable: true,
+  width: '140px',
+  render: (refreshedAt: unknown) => {
+    const dateStr = refreshedAt as string | null;
+    return (
+      <div className="flex items-center space-x-1">
+        <CalendarIcon className="h-4 w-4 text-gray-400" />
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          {dateStr
+            ? formatDistanceToNow(new Date(dateStr), { addSuffix: true })
+            : 'Never'}
+        </span>
+      </div>
+    );
+  },
+});
+
+// ============================================================================
+// Table Component using Factory
+// ============================================================================
+
+const BaseChannelTable = createTableComponent<ChannelSchema>({
+  columns: [
+    createChannelNameColumn(),
+    createTopicColumn(),
+    createResolutionColumn(),
+    createVideoCountColumn(),
+    createSubscriberColumn(),
+    createViewCountColumn(),
+    createChannelStatusColumn(),
+    createRefreshIntervalColumn(),
+    createRefreshedAtColumn(),
+  ],
+  includeId: true,
+  includeStatus: false, // Using custom status column
+  includeUrl: false,
+  includeCreatedAt: false,
+  includeUpdatedAt: true,
+  includeDownloadedAt: false,
+  emptyMessage: 'No channels found. Try adjusting your search or filters.',
+});
+
+// ============================================================================
+// Wrapper for backward compatibility
+// ============================================================================
 
 interface ChannelTableProps {
   channels: ChannelSchema[];
@@ -23,222 +206,9 @@ interface ChannelTableProps {
   onRowClick?: (channel: ChannelSchema) => void;
 }
 
-// Status badge component
-const StatusBadge: React.FC<{ status?: string | null }> = ({ status }) => {
-  if (!status) return <span className="text-gray-400">-</span>;
-  
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'downloaded':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'pending':
-      case 'scraping':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'failed':
-      case 'error':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
-    }
-  };
-
-  return (
-    <span className={cn(
-      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize",
-      getStatusColor(status)
-    )}>
-      {status}
-    </span>
-  );
-};
-
-// Number formatter
-const formatNumber = (num?: number | null): string => {
-  if (!num) return '-';
-  
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(1)}M`;
-  } else if (num >= 1000) {
-    return `${(num / 1000).toFixed(1)}K`;
-  }
-  return num.toLocaleString();
-};
-
 export const ChannelTable: React.FC<ChannelTableProps> = ({
   channels,
-  loading,
-  onSort,
-  sortKey,
-  sortDirection,
-  onView,
-  onEdit,
-  onDelete,
-  onRowClick,
-}) => {
-  const columns = [
-    {
-      key: 'id',
-      title: 'ID',
-      sortable: true,
-      width: '80px',
-      render: (id: number | null) => (
-        <span className="text-sm font-mono text-gray-700 dark:text-gray-300">
-          {id || '-'}
-        </span>
-      ),
-    },
-    {
-      key: 'name',
-      title: 'Channel',
-      sortable: true,
-      width: '250px',
-      render: (name: string | null, channel: ChannelSchema) => (
-        <div className="flex items-center space-x-3">
-          <div className="flex-shrink-0">
-            <TvIcon className="h-5 w-5 text-gray-400" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-              {name || channel.uploader || 'Unknown Channel'}
-            </p>
-            {channel.channel_url && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                {new URL(channel.channel_url).hostname}
-              </p>
-            )}
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: 'topic',
-      title: 'Topic',
-      sortable: true,
-      width: '150px',
-      render: (topic: string | null) => (
-        <span className="text-sm text-gray-900 dark:text-white">
-          {topic || '-'}
-        </span>
-      ),
-    },
-    {
-      key: 'resolution',
-      title: 'Resolution',
-      sortable: true,
-      width: '120px',
-      render: (resolution: string | null) => (
-        <span className="text-sm text-gray-900 dark:text-white">
-          {resolution || '-'}
-        </span>
-      ),
-    },
-    {
-      key: 'video_count',
-      title: 'Videos',
-      sortable: true,
-      width: '100px',
-      render: (videoCount: number | null, channel: ChannelSchema) => (
-        <div className="flex items-center space-x-1">
-          <PlayIcon className="h-4 w-4 text-gray-400" />
-          <span className="text-sm text-gray-900 dark:text-white">
-            {formatNumber(videoCount || channel.count_videos)}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: 'subscriber_count',
-      title: 'Subscribers',
-      sortable: true,
-      width: '120px',
-      render: (subscriberCount: number | null) => (
-        <div className="flex items-center space-x-1">
-          <UsersIcon className="h-4 w-4 text-gray-400" />
-          <span className="text-sm text-gray-900 dark:text-white">
-            {formatNumber(subscriberCount)}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: 'view_count',
-      title: 'Total Views',
-      sortable: true,
-      width: '120px',
-      render: (viewCount: number | null) => (
-        <div className="flex items-center space-x-1">
-          <EyeIcon className="h-4 w-4 text-gray-400" />
-          <span className="text-sm text-gray-900 dark:text-white">
-            {formatNumber(viewCount)}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: 'status',
-      title: 'Status',
-      sortable: true,
-      width: '120px',
-      render: (status: string | null) => <StatusBadge status={status} />,
-    },
-    {
-      key: 'refresh_interval_days',
-      title: 'Refresh Interval',
-      sortable: true,
-      width: '120px',
-      render: (refreshInterval: number | null) => (
-        <span className="text-sm text-gray-900 dark:text-white">
-          {refreshInterval ? `${refreshInterval} days` : '-'}
-        </span>
-      ),
-    },
-    {
-      key: 'refreshed_at',
-      title: 'Last Refresh',
-      sortable: true,
-      width: '140px',
-      render: (refreshedAt: string | null) => (
-        <div className="flex items-center space-x-1">
-          <CalendarIcon className="h-4 w-4 text-gray-400" />
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {refreshedAt 
-              ? formatDistanceToNow(new Date(refreshedAt), { addSuffix: true })
-              : 'Never'
-            }
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: 'updated_at',
-      title: 'Updated',
-      sortable: true,
-      width: '120px',
-      render: (updatedAt: string | null) => (
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          {updatedAt 
-            ? formatDistanceToNow(new Date(updatedAt), { addSuffix: true })
-            : '-'
-          }
-        </span>
-      ),
-    },
-  ];
-
-  return (
-    <DataTable
-      data={channels}
-      columns={columns}
-      loading={loading}
-      onSort={onSort}
-      sortKey={sortKey}
-      sortDirection={sortDirection}
-      onRowClick={onRowClick}
-      onView={onView}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      showActions={!!(onView || onEdit || onDelete)}
-      emptyMessage="No channels found. Try adjusting your search or filters."
-    />
-  );
-};
+  ...props
+}) => (
+  <BaseChannelTable data={channels} {...props} />
+);
