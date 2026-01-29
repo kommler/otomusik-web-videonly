@@ -1,37 +1,34 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { PlayIcon, ClockIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { PlayIcon } from '@heroicons/react/24/outline';
 import { ReleaseSchema } from '@/types/api';
 import { DataTable } from '@/components/ui/data-table';
 import { Tooltip } from '@/components/ui';
 import { cn } from '@/lib/utils';
+import { ColumnDef } from './BaseTable';
 
-interface MusicReleaseTableProps {
-  releases: ReleaseSchema[];
-  loading?: boolean;
-  onSort?: (key: string, direction: 'asc' | 'desc') => void;
-  sortKey?: string;
-  sortDirection?: 'asc' | 'desc';
-  onView?: (release: ReleaseSchema) => void;
-  onEdit?: (release: ReleaseSchema) => void;
-  onDelete?: (release: ReleaseSchema) => void;
-  onRowClick?: (release: ReleaseSchema) => void;
+// ============================================================================
+// Local StatusBadge (with error handling specific to releases)
+// ============================================================================
+
+interface StatusBadgeProps {
+  status?: string | null;
+  errors?: unknown;
+  release?: ReleaseSchema;
   onStatusChange?: (release: ReleaseSchema, newStatus: string) => void;
   onStatusDoubleClick?: (release: ReleaseSchema) => void;
 }
 
-// Status badge component
-const StatusBadge: React.FC<{
-  status?: string | null;
-  errors?: any;
-  release?: ReleaseSchema;
-  onStatusChange?: (release: ReleaseSchema, newStatus: string) => void;
-  onStatusDoubleClick?: (release: ReleaseSchema) => void;
-}> = ({ status, errors, release, onStatusChange, onStatusDoubleClick }) => {
+const StatusBadge: React.FC<StatusBadgeProps> = ({
+  status,
+  errors,
+  release,
+  onStatusDoubleClick,
+}) => {
   if (!status) return <span className="text-gray-400">-</span>;
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+  const getStatusColor = (s: string) => {
+    switch (s.toLowerCase()) {
       case 'downloaded':
         return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
       case 'pending':
@@ -48,29 +45,25 @@ const StatusBadge: React.FC<{
     }
   };
 
-  const formatErrorMessage = (errors: any): string => {
-    if (!errors) return '';
-
-    if (typeof errors === 'string') return errors;
-    if (Array.isArray(errors)) return errors.join(', ');
-
+  const formatErrorMessage = (err: unknown): string => {
+    if (!err) return '';
+    if (typeof err === 'string') return err;
+    if (Array.isArray(err)) return err.join(', ');
     try {
-      return JSON.stringify(errors, null, 2);
+      return JSON.stringify(err, null, 2);
     } catch {
       return 'Error details available';
     }
   };
 
-  const hasErrors = errors && Object.keys(errors).length > 0;
+  const hasErrors = Boolean(errors && typeof errors === 'object' && Object.keys(errors as object).length > 0);
   const errorMessage = formatErrorMessage(errors);
   const isFailed = status?.toLowerCase() === 'failed';
   const isDownloaded = status?.toLowerCase() === 'downloaded';
   const isClickable = (isFailed || isDownloaded) && release && onStatusDoubleClick;
 
   const handleDoubleClick = () => {
-    if (isClickable) {
-      onStatusDoubleClick(release);
-    }
+    if (isClickable && release) onStatusDoubleClick(release);
   };
 
   const getTooltipMessage = () => {
@@ -82,9 +75,9 @@ const StatusBadge: React.FC<{
 
   return (
     <div className="flex items-center space-x-2">
-      <span 
+      <span
         className={cn(
-          "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all duration-200",
+          'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all duration-200',
           getStatusColor(status),
           isClickable ? 'cursor-pointer hover:shadow-md hover:scale-105 select-none' : ''
         )}
@@ -94,7 +87,7 @@ const StatusBadge: React.FC<{
         {status}
       </span>
       {hasErrors && (
-        <Tooltip 
+        <Tooltip
           content={errorMessage}
           position="top"
           className="flex items-center justify-center p-1 hover:bg-red-50 dark:hover:bg-red-950 rounded transition-colors"
@@ -106,26 +99,54 @@ const StatusBadge: React.FC<{
   );
 };
 
-// Priority badge component
-const PriorityBadge: React.FC<{ priority?: number | null }> = ({ priority }) => {
-  if (priority === null || priority === undefined) return <span className="text-gray-400">-</span>;
+// ============================================================================
+// Priority Badge
+// ============================================================================
 
-  const getPriorityColor = (priority: number) => {
-    if (priority >= 8) return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-    if (priority >= 5) return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-    if (priority >= 3) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
+const PriorityBadge: React.FC<{ priority?: number | null }> = ({ priority }) => {
+  if (priority === null || priority === undefined)
+    return <span className="text-gray-400">-</span>;
+
+  const getPriorityColor = (p: number) => {
+    if (p >= 8) return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+    if (p >= 5) return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
+    if (p >= 3) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
     return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
   };
 
   return (
-    <span className={cn(
-      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-      getPriorityColor(priority)
-    )}>
+    <span
+      className={cn(
+        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+        getPriorityColor(priority)
+      )}
+    >
       {priority}
     </span>
   );
 };
+
+// ============================================================================
+// Component Props
+// ============================================================================
+
+interface MusicReleaseTableProps {
+  releases: ReleaseSchema[];
+  loading?: boolean;
+  onSort?: (key: string, direction: 'asc' | 'desc') => void;
+  sortKey?: string;
+  sortDirection?: 'asc' | 'desc';
+  onView?: (release: ReleaseSchema) => void;
+  onEdit?: (release: ReleaseSchema) => void;
+  onDelete?: (release: ReleaseSchema) => void;
+  onRowClick?: (release: ReleaseSchema) => void;
+  onStatusChange?: (release: ReleaseSchema, newStatus: string) => void;
+  onStatusDoubleClick?: (release: ReleaseSchema) => void;
+}
+
+// ============================================================================
+// Table Component
+// ============================================================================
 
 export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
   releases,
@@ -140,119 +161,123 @@ export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
   onStatusChange,
   onStatusDoubleClick,
 }) => {
-  const columns = [
-    {
-      key: 'title',
-      title: 'Titre',
-      sortable: true,
-      // DataTable calls render(value, row, index) — we want the full row
-      render: (_value: any, release?: ReleaseSchema | null) => (
-        <div className="flex items-center space-x-3">
-          <div className="flex-shrink-0">
-            <PlayIcon className="h-5 w-5 text-gray-400" />
+  const columns: ColumnDef<ReleaseSchema>[] = useMemo(
+    () => [
+      {
+        key: 'title',
+        title: 'Titre',
+        sortable: true,
+        render: (_value: unknown, release: ReleaseSchema) => (
+          <div className="flex items-center space-x-3">
+            <div className="flex-shrink-0">
+              <PlayIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                {release?.title || 'Sans titre'}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                {release?.uploader || 'Artiste inconnu'}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-              {release?.title || 'Sans titre'}
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-              {release?.uploader || 'Artiste inconnu'}
-            </p>
+        ),
+      },
+      {
+        key: 'status',
+        title: 'Statut',
+        sortable: true,
+        render: (_value: unknown, release: ReleaseSchema) => (
+          <StatusBadge
+            status={release?.status}
+            errors={release?.errors}
+            release={release ?? undefined}
+            onStatusChange={onStatusChange}
+            onStatusDoubleClick={onStatusDoubleClick}
+          />
+        ),
+      },
+      {
+        key: 'priority',
+        title: 'Priorité',
+        sortable: true,
+        render: (_value: unknown, release: ReleaseSchema) => (
+          <PriorityBadge priority={release?.priority ?? null} />
+        ),
+      },
+      {
+        key: 'playlist_name',
+        title: 'Playlist',
+        sortable: true,
+        render: (_value: unknown, release: ReleaseSchema) => (
+          <div className="text-sm text-gray-900 dark:text-white">
+            {release?.playlist_name || '-'}
           </div>
-        </div>
-      ),
-    },
-    {
-      key: 'status',
-      title: 'Statut',
-      sortable: true,
-      render: (_value: any, release?: ReleaseSchema | null) => (
-        <StatusBadge
-          status={release?.status}
-          errors={release?.errors}
-          release={release ?? undefined}
-          onStatusChange={onStatusChange}
-          onStatusDoubleClick={onStatusDoubleClick}
-        />
-      ),
-    },
-    {
-      key: 'priority',
-      title: 'Priorité',
-      sortable: true,
-      render: (_value: any, release?: ReleaseSchema | null) => (
-        <PriorityBadge priority={release?.priority ?? null} />
-      ),
-    },
-    {
-      key: 'playlist_name',
-      title: 'Playlist',
-      sortable: true,
-      render: (_value: any, release?: ReleaseSchema | null) => (
-        <div className="text-sm text-gray-900 dark:text-white">
-          {release?.playlist_name || '-'}
-        </div>
-      ),
-    },
-    {
-      key: 'channel_name',
-      title: 'Canal',
-      sortable: true,
-      render: (_value: any, release?: ReleaseSchema | null) => (
-        <div className="text-sm text-gray-900 dark:text-white">
-          {release?.channel_name || '-'}
-        </div>
-      ),
-    },
-    {
-      key: 'current_index',
-      title: 'Progression',
-      sortable: true,
-      render: (_value: any, release?: ReleaseSchema | null) => (
-        <div className="text-sm text-gray-900 dark:text-white">
-          {release && release.current_index !== null && release.total_index !== null
-            ? `${release.current_index}/${release.total_index}`
-            : release && release.current_index !== null
-            ? `${release.current_index}`
-            : '-'
-          }
-        </div>
-      ),
-    },
-    {
-      key: 'inserted_at',
-      title: 'Créé',
-      sortable: true,
-      render: (_value: any, release?: ReleaseSchema | null) => (
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          {release?.inserted_at ? (
-            <Tooltip content={new Date(release.inserted_at).toLocaleString()}>
-              <span>{formatDistanceToNow(new Date(release.inserted_at), { addSuffix: true })}</span>
-            </Tooltip>
-          ) : (
-            '-'
-          )}
-        </div>
-      ),
-    },
-    {
-      key: 'downloaded_at',
-      title: 'Téléchargé',
-      sortable: true,
-      render: (_value: any, release?: ReleaseSchema | null) => (
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          {release?.downloaded_at ? (
-            <Tooltip content={new Date(release.downloaded_at).toLocaleString()}>
-              <span>{formatDistanceToNow(new Date(release.downloaded_at), { addSuffix: true })}</span>
-            </Tooltip>
-          ) : (
-            '-'
-          )}
-        </div>
-      ),
-    },
-  ];
-
+        ),
+      },
+      {
+        key: 'channel_name',
+        title: 'Canal',
+        sortable: true,
+        render: (_value: unknown, release: ReleaseSchema) => (
+          <div className="text-sm text-gray-900 dark:text-white">
+            {release?.channel_name || '-'}
+          </div>
+        ),
+      },
+      {
+        key: 'current_index',
+        title: 'Progression',
+        sortable: true,
+        render: (_value: unknown, release: ReleaseSchema) => (
+          <div className="text-sm text-gray-900 dark:text-white">
+            {release && release.current_index !== null && release.total_index !== null
+              ? `${release.current_index}/${release.total_index}`
+              : release && release.current_index !== null
+              ? `${release.current_index}`
+              : '-'}
+          </div>
+        ),
+      },
+      {
+        key: 'inserted_at',
+        title: 'Créé',
+        sortable: true,
+        render: (_value: unknown, release: ReleaseSchema) => (
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {release?.inserted_at ? (
+              <Tooltip content={new Date(release.inserted_at).toLocaleString()}>
+                <span>
+                  {formatDistanceToNow(new Date(release.inserted_at), { addSuffix: true })}
+                </span>
+              </Tooltip>
+            ) : (
+              '-'
+            )}
+          </div>
+        ),
+      },
+      {
+        key: 'downloaded_at',
+        title: 'Téléchargé',
+        sortable: true,
+        render: (_value: unknown, release: ReleaseSchema) => (
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {release?.downloaded_at ? (
+              <Tooltip content={new Date(release.downloaded_at).toLocaleString()}>
+                <span>
+                  {formatDistanceToNow(new Date(release.downloaded_at), { addSuffix: true })}
+                </span>
+              </Tooltip>
+            ) : (
+              '-'
+            )}
+          </div>
+        ),
+      },
+    ],
+    [onStatusChange, onStatusDoubleClick]
+  );
 
   return (
     <DataTable
