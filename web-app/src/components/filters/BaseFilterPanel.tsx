@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Button, SearchInput } from '../ui';
 import { getStatusFilterColors } from '../../lib/status-utils';
 import { cn } from '../../lib/utils';
+import { useDebounce } from '../../lib/hooks';
 
 /**
  * Option de tri pour les selects
@@ -59,18 +60,24 @@ export function BaseFilterPanel<Q extends Record<string, unknown>>({
     (filters as { search?: string }).search || ''
   );
 
-  // Gestion de la recherche avec debounce intégré
-  const handleSearchChange = useCallback((value: string) => {
-    setLocalSearch(value);
-    const timeoutId = setTimeout(() => {
+  // Debounce la valeur de recherche
+  const debouncedSearch = useDebounce(localSearch, 300);
+
+  // Synchroniser les filtres quand la recherche debouncée change
+  useEffect(() => {
+    const currentSearch = (filters as { search?: string }).search || '';
+    if (debouncedSearch !== currentSearch) {
       onFiltersChange({
         ...filters,
-        search: value || undefined,
+        search: debouncedSearch || undefined,
       } as Q);
-    }, 300);
+    }
+  }, [debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    return () => clearTimeout(timeoutId);
-  }, [filters, onFiltersChange]);
+  // Gestion de la recherche locale (sans debounce ici, le hook s'en charge)
+  const handleSearchChange = useCallback((value: string) => {
+    setLocalSearch(value);
+  }, []);
 
   // Gestion du toggle de statut
   const handleStatusFilter = useCallback((status: string) => {

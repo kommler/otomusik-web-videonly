@@ -319,3 +319,58 @@ export function createEntityStore<T, Q extends object>(
  * Type helper pour les stores créés avec la factory
  */
 export type EntityStore<T, Q extends object> = ReturnType<typeof createEntityStore<T, Q>>;
+
+// ============================================================================
+// Sélecteurs optimisés pour éviter les re-renders inutiles
+// ============================================================================
+
+/**
+ * Sélecteurs pour accéder uniquement aux données nécessaires
+ * Utilisation: const items = useMyStore(selectItems)
+ */
+export const selectItems = <T, Q extends object>(state: EntityState<T, Q>) => state.items;
+export const selectAllItems = <T, Q extends object>(state: EntityState<T, Q>) => state.allItems;
+export const selectSelectedItem = <T, Q extends object>(state: EntityState<T, Q>) => state.selectedItem;
+export const selectTotalCount = <T, Q extends object>(state: EntityState<T, Q>) => state.totalCount;
+export const selectStatusCounts = <T, Q extends object>(state: EntityState<T, Q>) => state.statusCounts;
+
+/**
+ * Sélecteurs pour les états de chargement
+ */
+export const selectLoading = <T, Q extends object>(state: EntityState<T, Q>) => state.loading;
+export const selectCreating = <T, Q extends object>(state: EntityState<T, Q>) => state.creating;
+export const selectUpdating = <T, Q extends object>(state: EntityState<T, Q>) => state.updating;
+export const selectDeleting = <T, Q extends object>(state: EntityState<T, Q>) => state.deleting;
+export const selectError = <T, Q extends object>(state: EntityState<T, Q>) => state.error;
+
+/**
+ * Sélecteur pour les états de chargement combinés
+ */
+export const selectIsLoading = <T, Q extends object>(state: EntityState<T, Q>) => 
+  state.loading || state.creating || state.updating || state.deleting;
+
+/**
+ * Sélecteurs pour la pagination et les filtres
+ */
+export const selectFilters = <T, Q extends object>(state: EntityState<T, Q>) => state.filters;
+export const selectCurrentPage = <T, Q extends object>(state: EntityState<T, Q>) => state.currentPage;
+export const selectPageSize = <T, Q extends object>(state: EntityState<T, Q>) => state.pageSize;
+
+/**
+ * Sélecteur pour les données de table (items + état de chargement)
+ */
+export const selectTableData = <T, Q extends object>(state: EntityState<T, Q>) => ({
+  items: state.items,
+  loading: state.loading,
+  totalCount: state.totalCount,
+});
+
+/**
+ * Sélecteur pour les filtres et pagination
+ */
+export const selectFilterState = <T, Q extends object>(state: EntityState<T, Q>) => ({
+  filters: state.filters,
+  statusCounts: state.statusCounts,
+  totalCount: state.totalCount,
+  loading: state.loading,
+});
