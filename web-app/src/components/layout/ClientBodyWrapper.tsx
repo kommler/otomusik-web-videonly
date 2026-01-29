@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { QueryProvider } from '@/lib/query';
 
 interface ClientBodyWrapperProps {
   children: React.ReactNode;
@@ -30,5 +31,9 @@ export const ClientBodyWrapper: React.FC<ClientBodyWrapperProps> = ({ children }
     });
   }, []);
 
-  return <>{children}</>;
+  return (
+    <QueryProvider>
+      {children}
+    </QueryProvider>
+  );
 };
