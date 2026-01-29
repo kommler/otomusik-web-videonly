@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { MusicalNoteIcon, QueueListIcon, CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { MusicalNoteIcon, QueueListIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { MusicChannelSchema } from '@/types/api';
 import { DataTable } from '@/components/ui/data-table';
 import { StatusBadge } from '../ui';
@@ -153,7 +153,6 @@ interface MusicChannelTableProps {
   onView?: (channel: MusicChannelSchema) => void;
   onEdit?: (channel: MusicChannelSchema) => void;
   onDelete?: (channel: MusicChannelSchema) => void;
-  onSetWaiting?: (channel: MusicChannelSchema) => void;
   onStatusDoubleClick?: (channel: MusicChannelSchema) => void;
   onRowClick?: (channel: MusicChannelSchema) => void;
 }
@@ -171,7 +170,6 @@ export const MusicChannelTable: React.FC<MusicChannelTableProps> = ({
   onView,
   onEdit,
   onDelete,
-  onSetWaiting,
   onStatusDoubleClick,
   onRowClick,
 }) => {
@@ -198,11 +196,7 @@ export const MusicChannelTable: React.FC<MusicChannelTableProps> = ({
       onView={onView}
       onEdit={onEdit}
       onDelete={onDelete}
-      onCustomAction={onSetWaiting}
-      customActionIcon={<ClockIcon className="h-4 w-4 cursor-pointer text-blue-600" />}
-      customActionTitle="Set to WAITING"
-      customActionClassName="hover:bg-blue-50 hover:text-blue-600 border border-transparent hover:border-blue-200 transition-all duration-200 hover:shadow-sm"
-      showActions={!!(onView || onEdit || onDelete || onSetWaiting)}
+      showActions={!!(onView || onEdit || onDelete)}
       emptyMessage="No music channels found. Try adjusting your search or filters."
     />
   );

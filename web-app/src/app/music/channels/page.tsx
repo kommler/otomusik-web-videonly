@@ -143,28 +143,6 @@ export default function MusicChannelsPage() {
     }
   };
 
-  const handleSetWaiting = async (channel: MusicChannel) => {
-    if (!channel.id) return;
-    
-    if (confirm(`Définir le statut du canal "${channel.channel_name}" sur WAITING ?`)) {
-      setFormLoading(true);
-      try {
-        const updateData = {
-          ...channel,
-          status: 'WAITING',
-        };
-        
-        await updateChannel(channel.id, updateData);
-        // Refresh current page data
-        fetchChannels(filters);
-      } catch (error) {
-        console.error('Error updating music channel status:', error);
-      } finally {
-        setFormLoading(false);
-      }
-    }
-  };
-
   // Double-clic sur le statut : DOWNLOADED ↔ WAITING
   const handleStatusDoubleClick = async (channel: MusicChannel) => {
     if (!channel.id) return;
@@ -310,7 +288,6 @@ export default function MusicChannelsPage() {
                 onRowClick={handleRowClick}
                 onView={handleView}
                 onEdit={handleEdit}
-                onSetWaiting={handleSetWaiting}
                 onStatusDoubleClick={handleStatusDoubleClick}
                 onDelete={handleDelete}
               />
