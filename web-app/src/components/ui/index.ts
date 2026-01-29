@@ -11,6 +11,7 @@ export {
   CardContent 
 } from './card';
 export { Modal, ModalContent, ModalFooter } from './modal';
+export { LazyModal, LazyModalContent, LazyModalFooter } from './lazy-modal';
 export { LoadingSpinner, LoadingOverlay } from './loading';
 export { Notification, NotificationContainer } from './notification';
 export { SearchInput } from './search-input';

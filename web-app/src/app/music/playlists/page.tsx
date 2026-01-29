@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Layout } from '@/components/layout/Layout';
-import { MusicPlaylistTable } from '@/components/tables';
-import { MusicPlaylistFilterPanel } from '@/components/filters';
-import { Button, LoadingSpinner, Modal, Pagination } from '@/components/ui';
+import { LazyMusicPlaylistTable } from '@/components/tables';
+import { LazyMusicPlaylistFilterPanel } from '@/components/filters';
+import { Button, LoadingSpinner, LazyModal as Modal, Pagination } from '@/components/ui';
 import { FormInput, FormTextarea, FormSelect } from '@/components/ui/form';
 import { useMusicPlaylistStore, useUIStore } from '@/stores';
 import { PlaylistSchema, PlaylistQueryParams } from '@/types/api';
@@ -337,8 +337,8 @@ export default function MusicPlaylistsPage() {
           </Button>
         </div>
 
-        {/* Filters */}
-        <MusicPlaylistFilterPanel
+        {/* Filters - lazy loaded */}
+        <LazyMusicPlaylistFilterPanel
             entityType="playlists musicales"
             filters={filters}
             statusCounts={statusCounts}
@@ -361,8 +361,8 @@ export default function MusicPlaylistsPage() {
           </div>
         )}
 
-        {/* Playlist Table */}
-        <MusicPlaylistTable
+        {/* Playlist Table - lazy loaded */}
+        <LazyMusicPlaylistTable
               playlists={playlists}
               loading={loading}
               onSort={handleSort}

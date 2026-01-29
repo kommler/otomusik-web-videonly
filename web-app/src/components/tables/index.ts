@@ -8,3 +8,14 @@ export { MusicReleaseTable } from './MusicReleaseTable';
 export { MusicVideoTable } from './MusicVideoTable';
 export { PlaylistTable } from './PlaylistTable';
 export { MusicPlaylistTable } from './MusicPlaylistTable';
+
+// Lazy-loaded versions for code splitting
+export {
+  LazyVideoTable,
+  LazyChannelTable,
+  LazyPlaylistTable,
+  LazyMusicPlaylistTable,
+  LazyMusicChannelTable,
+  LazyMusicReleaseTable,
+  LazyMusicVideoTable,
+} from './lazy';

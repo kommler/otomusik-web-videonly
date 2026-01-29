@@ -7,3 +7,14 @@ export { MusicChannelFilterPanel } from './MusicChannelFilterPanel';
 export { MusicReleaseFilterPanel } from './MusicReleaseFilterPanel';
 export { MusicVideoFilterPanel } from './MusicVideoFilterPanel';
 export { MusicPlaylistFilterPanel } from './MusicPlaylistFilterPanel';
+
+// Lazy-loaded versions for code splitting
+export {
+  LazyVideoFilterPanel,
+  LazyChannelFilterPanel,
+  LazyPlaylistFilterPanel,
+  LazyMusicPlaylistFilterPanel,
+  LazyMusicChannelFilterPanel,
+  LazyMusicReleaseFilterPanel,
+  LazyMusicVideoFilterPanel,
+} from './lazy';

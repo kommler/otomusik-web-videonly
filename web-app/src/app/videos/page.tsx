@@ -3,11 +3,11 @@
 import React, { Suspense, useState, useCallback, useMemo } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Layout } from '@/components/layout/Layout';
-import { VideoTable } from '@/components/tables';
-import { VideoFilterPanel } from '@/components/filters';
+import { LazyVideoTable } from '@/components/tables';
+import { LazyVideoFilterPanel } from '@/components/filters';
 import { 
   Button, 
-  Modal, 
+  LazyModal as Modal, 
   Pagination,
   TableSkeleton,
   FilterSkeleton,
@@ -376,14 +376,12 @@ export default function VideosPage() {
           </Button>
         </div>
 
-        {/* Filters with Suspense */}
+        {/* Filters - lazy loaded */}
         <div className="mb-6">
-          <Suspense fallback={<FilterSkeleton filters={4} />}>
-            <VideoFilterPanel />
-          </Suspense>
+          <LazyVideoFilterPanel />
         </div>
 
-        {/* Video Table with Suspense */}
+        {/* Video Table - lazy loaded */}
         <ErrorBoundary
           fallback={(error, reset) => (
             <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-lg">
@@ -399,51 +397,49 @@ export default function VideosPage() {
             </div>
           )}
         >
-          <Suspense fallback={<TableSkeleton rows={10} columns={6} />}>
-            {loading ? (
-              <TableSkeleton rows={10} columns={6} />
-            ) : (
-              <>
-                {/* Top Pagination */}
-                {totalPages > 1 && (
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalRecords={totalCount}
-                    pageSize={pageSize}
-                    onPageChange={handlePageChange}
-                    onPageSizeChange={handlePageSizeChange}
-                    className="mb-4"
-                  />
-                )}
-                
-                <VideoTable
-                  videos={videos}
-                  loading={loading}
-                  onSort={handleSort}
-                  sortKey={filters.sort_by}
-                  sortDirection={filters.sort_order}
-                  onEdit={openEditModal}
-                  onDelete={handleDeleteVideo}
-                  onStatusChange={handleStatusChange}
-                  onStatusDoubleClick={handleStatusDoubleClick}
+          {loading ? (
+            <TableSkeleton rows={10} columns={6} />
+          ) : (
+            <>
+              {/* Top Pagination */}
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalRecords={totalCount}
+                  pageSize={pageSize}
+                  onPageChange={handlePageChange}
+                  onPageSizeChange={handlePageSizeChange}
+                  className="mb-4"
                 />
+              )}
+              
+              <LazyVideoTable
+                videos={videos}
+                loading={loading}
+                onSort={handleSort}
+                sortKey={filters.sort_by}
+                sortDirection={filters.sort_order}
+                onEdit={openEditModal}
+                onDelete={handleDeleteVideo}
+                onStatusChange={handleStatusChange}
+                onStatusDoubleClick={handleStatusDoubleClick}
+              />
 
-                {/* Bottom Pagination */}
-                {totalPages > 1 && (
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalRecords={totalCount}
-                    pageSize={pageSize}
-                    onPageChange={handlePageChange}
-                    onPageSizeChange={handlePageSizeChange}
-                    className="mt-4"
-                  />
-                )}
-              </>
-            )}
-          </Suspense>
+              {/* Bottom Pagination */}
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalRecords={totalCount}
+                  pageSize={pageSize}
+                  onPageChange={handlePageChange}
+                  onPageSizeChange={handlePageSizeChange}
+                  className="mt-4"
+                />
+              )}
+            </>
+          )}
         </ErrorBoundary>
 
         {/* Create Modal */}

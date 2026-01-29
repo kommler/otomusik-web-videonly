@@ -2,11 +2,11 @@
 
 import React, { Suspense, useCallback, useState } from 'react';
 import { Layout } from '../../components/layout/Layout';
-import { PlaylistFilterPanel } from '../../components/filters/PlaylistFilterPanel';
-import { PlaylistTable } from '../../components/tables/PlaylistTable';
+import { LazyPlaylistFilterPanel } from '../../components/filters';
+import { LazyPlaylistTable } from '../../components/tables';
 import { Button } from '../../components/ui/button';
 import { Pagination } from '../../components/ui/pagination';
-import { Modal } from '../../components/ui/modal';
+import { LazyModal as Modal } from '../../components/ui';
 import { FormInput, FormTextarea, FormSelect } from '../../components/ui/form';
 import { TableSkeleton, FilterSkeleton, ErrorBoundary } from '../../components/ui';
 import { usePlaylistStore } from '../../stores';
@@ -351,20 +351,18 @@ const PlaylistsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Panel de filtres avec Suspense */}
-        <Suspense fallback={<FilterSkeleton filters={4} />}>
-          <PlaylistFilterPanel
-            entityType="playlists"
-            filters={filters}
-            statusCounts={statusCounts}
-            sortOptions={playlistFilterConfig.sortOptions}
-            onFiltersChange={handleFiltersChange}
-            loading={loading}
-            totalCount={totalCount}
-          />
-        </Suspense>
+        {/* Panel de filtres - lazy loaded */}
+        <LazyPlaylistFilterPanel
+          entityType="playlists"
+          filters={filters}
+          statusCounts={statusCounts}
+          sortOptions={playlistFilterConfig.sortOptions}
+          onFiltersChange={handleFiltersChange}
+          loading={loading}
+          totalCount={totalCount}
+        />
 
-        {/* Table des playlists avec Suspense */}
+        {/* Table des playlists - lazy loaded */}
         <ErrorBoundary
           fallback={(error, reset) => (
             <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-lg">
@@ -380,48 +378,46 @@ const PlaylistsPage: React.FC = () => {
             </div>
           )}
         >
-          <Suspense fallback={<TableSkeleton rows={10} columns={6} />}>
-            {/* Contrôles de pagination (haut) */}
-            {totalPages > 1 && (
-              <div className="flex justify-center">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalRecords={totalCount}
-                  pageSize={pageSize}
-                  onPageChange={handlePageChange}
-                />
-              </div>
-            )}
-
-            {/* Table des playlists */}
-            {loading ? (
-              <TableSkeleton rows={10} columns={6} />
-            ) : (
-              <PlaylistTable
-                playlists={playlists}
-                loading={loading}
-                onView={handleView}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onRowClick={(playlist) => setSelectedPlaylist(playlist)}
-                onStatusDoubleClick={handleStatusDoubleClick}
+          {/* Contrôles de pagination (haut) */}
+          {totalPages > 1 && (
+            <div className="flex justify-center">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalRecords={totalCount}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
               />
-            )}
+            </div>
+          )}
+
+          {/* Table des playlists */}
+          {loading ? (
+            <TableSkeleton rows={10} columns={6} />
+          ) : (
+            <LazyPlaylistTable
+              playlists={playlists}
+              loading={loading}
+              onView={handleView}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onRowClick={(playlist) => setSelectedPlaylist(playlist)}
+              onStatusDoubleClick={handleStatusDoubleClick}
+            />
+          )}
 
             {/* Contrôles de pagination (bas) */}
-            {totalPages > 1 && (
-              <div className="flex justify-center">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalRecords={totalCount}
-                  pageSize={pageSize}
-                  onPageChange={handlePageChange}
-                />
-              </div>
-            )}
-          </Suspense>
+          {totalPages > 1 && (
+            <div className="flex justify-center">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalRecords={totalCount}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
         </ErrorBoundary>
 
         {/* TODO: Modals pour création, édition et suppression */}
