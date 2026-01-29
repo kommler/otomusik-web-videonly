@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Layout } from '@/components/layout/Layout';
 import { VideoTable } from '@/components/tables';
-import { FilterPanel } from '@/components/filters';
+import { VideoFilterPanel } from '@/components/filters';
 import { Button, LoadingSpinner, Modal, Pagination } from '@/components/ui';
 import { FormInput, FormTextarea, FormSelect } from '@/components/ui/form';
 import { useVideoStore, useChannelStore, useUIStore } from '@/stores';
@@ -371,28 +371,7 @@ export default function VideosPage() {
 
         {/* Filters */}
         <div className="mb-6">
-          <FilterPanel
-            filters={filters}
-            onFiltersChange={setFilters}
-            onClearFilters={() => {
-              setFilters({
-                limit: 100,
-                sort_by: 'updated_at',
-                sort_order: 'desc',
-              });
-            }}
-            activeFiltersCount={Object.keys(filters).filter(key => 
-              filters[key as keyof typeof filters] !== undefined && 
-              key !== 'limit' && 
-              key !== 'sort_by' && 
-              key !== 'sort_order'
-            ).length}
-            type="video"
-            statusCounts={statusCounts}
-            totalFilteredCount={totalCount}
-            onRefresh={handleRefresh}
-            loading={loading}
-          />
+          <VideoFilterPanel />
         </div>
 
         {/* Video Table */}

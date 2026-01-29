@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Layout } from '@/components/layout/Layout';
 import { ChannelTable } from '@/components/tables';
-import { FilterPanel } from '@/components/filters';
+import { ChannelFilterPanel } from '@/components/filters';
 import { Button, LoadingSpinner, Modal, Pagination } from '@/components/ui';
 import { FormInput, FormTextarea } from '@/components/ui/form';
 import { useChannelStore, useUIStore } from '@/stores';
@@ -279,28 +279,7 @@ export default function ChannelsPage() {
 
         {/* Filters */}
         <div className="mb-6">
-          <FilterPanel
-            filters={filters}
-            onFiltersChange={setFilters}
-            onClearFilters={() => {
-              setFilters({
-                limit: 100,
-                sort_by: 'updated_at',
-                sort_order: 'desc',
-              });
-            }}
-            activeFiltersCount={Object.keys(filters).filter(key => 
-              filters[key as keyof typeof filters] !== undefined && 
-              key !== 'limit' && 
-              key !== 'sort_by' && 
-              key !== 'sort_order'
-            ).length}
-            type="channel"
-            statusCounts={statusCounts}
-            totalFilteredCount={totalCount}
-            onRefresh={handleRefresh}
-            loading={loading}
-          />
+          <ChannelFilterPanel />
         </div>
 
         {/* Channel Table */}
