@@ -80,7 +80,7 @@ export function useCreateVideo() {
 }
 
 /**
- * Hook pour mettre à jour une vidéo
+ * Hook pour mettre à jour une vidéo avec Optimistic Update
  */
 export function useUpdateVideo() {
   const queryClient = useQueryClient();
@@ -88,15 +88,47 @@ export function useUpdateVideo() {
   return useMutation({
     mutationFn: ({ id, video }: { id: number; video: VideoSchema }) => 
       videoApi.update(id, video),
-    onSuccess: (updatedVideo) => {
-      // Mettre à jour le cache de la vidéo spécifique
-      if (updatedVideo.id) {
+    
+    // Optimistic update: mettre à jour le cache AVANT la réponse serveur
+    onMutate: async ({ id, video }) => {
+      // Annuler les requêtes en cours pour éviter les conflits
+      await queryClient.cancelQueries({ queryKey: queryKeys.videos.lists() });
+      await queryClient.cancelQueries({ queryKey: queryKeys.videos.detail(id) });
+      
+      // Snapshot de l'état précédent pour rollback
+      const previousVideo = queryClient.getQueryData<VideoSchema>(
+        queryKeys.videos.detail(id)
+      );
+      
+      // Mettre à jour optimistiquement le détail
+      queryClient.setQueryData(
+        queryKeys.videos.detail(id),
+        { ...previousVideo, ...video, id }
+      );
+      
+      // Mettre à jour optimistiquement dans toutes les listes
+      queryClient.setQueriesData<VideoSchema[]>(
+        { queryKey: queryKeys.videos.lists() },
+        (old) => old?.map(v => v.id === id ? { ...v, ...video } : v)
+      );
+      
+      return { previousVideo };
+    },
+    
+    // Rollback en cas d'erreur
+    onError: (_error, { id }, context) => {
+      if (context?.previousVideo) {
         queryClient.setQueryData(
-          queryKeys.videos.detail(updatedVideo.id),
-          updatedVideo
+          queryKeys.videos.detail(id),
+          context.previousVideo
         );
       }
-      // Invalider la liste
+      // Revalider pour récupérer l'état serveur
+      queryClient.invalidateQueries({ queryKey: queryKeys.videos.lists() });
+    },
+    
+    // Toujours revalider après mutation (succès ou erreur)
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.videos.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.videos.statusCounts() });
     },
@@ -104,14 +136,43 @@ export function useUpdateVideo() {
 }
 
 /**
- * Hook pour supprimer une vidéo
+ * Hook pour supprimer une vidéo avec Optimistic Update
  */
 export function useDeleteVideo() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: number) => videoApi.delete(id),
-    onSuccess: () => {
+    
+    // Optimistic update: supprimer immédiatement de l'UI
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.videos.lists() });
+      
+      // Snapshot des listes pour rollback
+      const previousLists = queryClient.getQueriesData<VideoSchema[]>({
+        queryKey: queryKeys.videos.lists()
+      });
+      
+      // Supprimer optimistiquement de toutes les listes
+      queryClient.setQueriesData<VideoSchema[]>(
+        { queryKey: queryKeys.videos.lists() },
+        (old) => old?.filter(v => v.id !== id)
+      );
+      
+      // Supprimer du cache détail
+      queryClient.removeQueries({ queryKey: queryKeys.videos.detail(id) });
+      
+      return { previousLists };
+    },
+    
+    // Rollback en cas d'erreur
+    onError: (_error, _id, context) => {
+      context?.previousLists?.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.videos.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.videos.statusCounts() });
     },
@@ -182,7 +243,7 @@ export function useCreateChannel() {
 }
 
 /**
- * Hook pour mettre à jour un channel
+ * Hook pour mettre à jour un channel avec Optimistic Update
  */
 export function useUpdateChannel() {
   const queryClient = useQueryClient();
@@ -190,13 +251,40 @@ export function useUpdateChannel() {
   return useMutation({
     mutationFn: ({ id, channel }: { id: number; channel: ChannelSchema }) => 
       channelApi.update(id, channel),
-    onSuccess: (updatedChannel) => {
-      if (updatedChannel.id) {
+    
+    // Optimistic update
+    onMutate: async ({ id, channel }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.channels.lists() });
+      await queryClient.cancelQueries({ queryKey: queryKeys.channels.detail(id) });
+      
+      const previousChannel = queryClient.getQueryData<ChannelSchema>(
+        queryKeys.channels.detail(id)
+      );
+      
+      queryClient.setQueryData(
+        queryKeys.channels.detail(id),
+        { ...previousChannel, ...channel, id }
+      );
+      
+      queryClient.setQueriesData<ChannelSchema[]>(
+        { queryKey: queryKeys.channels.lists() },
+        (old) => old?.map(c => c.id === id ? { ...c, ...channel } : c)
+      );
+      
+      return { previousChannel };
+    },
+    
+    onError: (_error, { id }, context) => {
+      if (context?.previousChannel) {
         queryClient.setQueryData(
-          queryKeys.channels.detail(updatedChannel.id),
-          updatedChannel
+          queryKeys.channels.detail(id),
+          context.previousChannel
         );
       }
+      queryClient.invalidateQueries({ queryKey: queryKeys.channels.lists() });
+    },
+    
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.channels.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.channels.statusCounts() });
     },
@@ -204,14 +292,38 @@ export function useUpdateChannel() {
 }
 
 /**
- * Hook pour supprimer un channel
+ * Hook pour supprimer un channel avec Optimistic Update
  */
 export function useDeleteChannel() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: number) => channelApi.delete(id),
-    onSuccess: () => {
+    
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.channels.lists() });
+      
+      const previousLists = queryClient.getQueriesData<ChannelSchema[]>({
+        queryKey: queryKeys.channels.lists()
+      });
+      
+      queryClient.setQueriesData<ChannelSchema[]>(
+        { queryKey: queryKeys.channels.lists() },
+        (old) => old?.filter(c => c.id !== id)
+      );
+      
+      queryClient.removeQueries({ queryKey: queryKeys.channels.detail(id) });
+      
+      return { previousLists };
+    },
+    
+    onError: (_error, _id, context) => {
+      context?.previousLists?.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.channels.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.channels.statusCounts() });
     },

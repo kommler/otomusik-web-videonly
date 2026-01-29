@@ -2,6 +2,9 @@
 export { useDebounce, useDebouncedCallback, useThrottledCallback } from './useDebounce';
 export { useInitialLoad, useFilteredLoad, usePageData } from './usePageData';
 
+// Optimistic mutation utilities
+export { useOptimisticUpdate, useOptimisticDelete } from './useOptimisticMutation';
+
 // React Query hooks - Videos & Channels
 export {
   useVideos,

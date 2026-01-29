@@ -83,7 +83,7 @@ export function useCreatePlaylist() {
 }
 
 /**
- * Hook pour mettre à jour une playlist
+ * Hook pour mettre à jour une playlist avec Optimistic Update
  */
 export function useUpdatePlaylist() {
   const queryClient = useQueryClient();
@@ -91,13 +91,36 @@ export function useUpdatePlaylist() {
   return useMutation({
     mutationFn: ({ id, playlist }: { id: number; playlist: PlaylistSchema }) => 
       playlistApi.update(id, playlist),
-    onSuccess: (updatedPlaylist) => {
-      if (updatedPlaylist.id) {
-        queryClient.setQueryData(
-          queryKeys.playlists.detail(updatedPlaylist.id),
-          updatedPlaylist
-        );
+    
+    onMutate: async ({ id, playlist }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.playlists.lists() });
+      await queryClient.cancelQueries({ queryKey: queryKeys.playlists.detail(id) });
+      
+      const previousData = queryClient.getQueryData<PlaylistSchema>(
+        queryKeys.playlists.detail(id)
+      );
+      
+      queryClient.setQueryData(
+        queryKeys.playlists.detail(id),
+        { ...previousData, ...playlist, id }
+      );
+      
+      queryClient.setQueriesData<PlaylistSchema[]>(
+        { queryKey: queryKeys.playlists.lists() },
+        (old) => old?.map(p => p.id === id ? { ...p, ...playlist } : p)
+      );
+      
+      return { previousData };
+    },
+    
+    onError: (_error, { id }, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKeys.playlists.detail(id), context.previousData);
       }
+      queryClient.invalidateQueries({ queryKey: queryKeys.playlists.lists() });
+    },
+    
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.playlists.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.playlists.statusCounts() });
     },
@@ -105,14 +128,38 @@ export function useUpdatePlaylist() {
 }
 
 /**
- * Hook pour supprimer une playlist
+ * Hook pour supprimer une playlist avec Optimistic Update
  */
 export function useDeletePlaylist() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: number) => playlistApi.delete(id),
-    onSuccess: () => {
+    
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.playlists.lists() });
+      
+      const previousLists = queryClient.getQueriesData<PlaylistSchema[]>({
+        queryKey: queryKeys.playlists.lists()
+      });
+      
+      queryClient.setQueriesData<PlaylistSchema[]>(
+        { queryKey: queryKeys.playlists.lists() },
+        (old) => old?.filter(p => p.id !== id)
+      );
+      
+      queryClient.removeQueries({ queryKey: queryKeys.playlists.detail(id) });
+      
+      return { previousLists };
+    },
+    
+    onError: (_error, _id, context) => {
+      context?.previousLists?.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.playlists.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.playlists.statusCounts() });
     },
@@ -183,7 +230,7 @@ export function useCreateMusicChannel() {
 }
 
 /**
- * Hook pour mettre à jour un music channel
+ * Hook pour mettre à jour un music channel avec Optimistic Update
  */
 export function useUpdateMusicChannel() {
   const queryClient = useQueryClient();
@@ -191,13 +238,36 @@ export function useUpdateMusicChannel() {
   return useMutation({
     mutationFn: ({ id, channel }: { id: number; channel: MusicChannelSchema }) => 
       musicChannelApi.update(id, channel),
-    onSuccess: (updatedChannel) => {
-      if (updatedChannel.id) {
-        queryClient.setQueryData(
-          queryKeys.musicChannels.detail(updatedChannel.id),
-          updatedChannel
-        );
+    
+    onMutate: async ({ id, channel }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.musicChannels.lists() });
+      await queryClient.cancelQueries({ queryKey: queryKeys.musicChannels.detail(id) });
+      
+      const previousData = queryClient.getQueryData<MusicChannelSchema>(
+        queryKeys.musicChannels.detail(id)
+      );
+      
+      queryClient.setQueryData(
+        queryKeys.musicChannels.detail(id),
+        { ...previousData, ...channel, id }
+      );
+      
+      queryClient.setQueriesData<MusicChannelSchema[]>(
+        { queryKey: queryKeys.musicChannels.lists() },
+        (old) => old?.map(c => c.id === id ? { ...c, ...channel } : c)
+      );
+      
+      return { previousData };
+    },
+    
+    onError: (_error, { id }, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKeys.musicChannels.detail(id), context.previousData);
       }
+      queryClient.invalidateQueries({ queryKey: queryKeys.musicChannels.lists() });
+    },
+    
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.musicChannels.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.musicChannels.statusCounts() });
     },
@@ -205,14 +275,38 @@ export function useUpdateMusicChannel() {
 }
 
 /**
- * Hook pour supprimer un music channel
+ * Hook pour supprimer un music channel avec Optimistic Update
  */
 export function useDeleteMusicChannel() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: number) => musicChannelApi.delete(id),
-    onSuccess: () => {
+    
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.musicChannels.lists() });
+      
+      const previousLists = queryClient.getQueriesData<MusicChannelSchema[]>({
+        queryKey: queryKeys.musicChannels.lists()
+      });
+      
+      queryClient.setQueriesData<MusicChannelSchema[]>(
+        { queryKey: queryKeys.musicChannels.lists() },
+        (old) => old?.filter(c => c.id !== id)
+      );
+      
+      queryClient.removeQueries({ queryKey: queryKeys.musicChannels.detail(id) });
+      
+      return { previousLists };
+    },
+    
+    onError: (_error, _id, context) => {
+      context?.previousLists?.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.musicChannels.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.musicChannels.statusCounts() });
     },
@@ -283,7 +377,7 @@ export function useCreateMusicRelease() {
 }
 
 /**
- * Hook pour mettre à jour une release
+ * Hook pour mettre à jour une release avec Optimistic Update
  */
 export function useUpdateMusicRelease() {
   const queryClient = useQueryClient();
@@ -291,13 +385,36 @@ export function useUpdateMusicRelease() {
   return useMutation({
     mutationFn: ({ id, release }: { id: number; release: ReleaseSchema }) => 
       musicReleaseApi.update(id, release),
-    onSuccess: (updatedRelease) => {
-      if (updatedRelease.id) {
-        queryClient.setQueryData(
-          queryKeys.musicReleases.detail(updatedRelease.id),
-          updatedRelease
-        );
+    
+    onMutate: async ({ id, release }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.musicReleases.lists() });
+      await queryClient.cancelQueries({ queryKey: queryKeys.musicReleases.detail(id) });
+      
+      const previousData = queryClient.getQueryData<ReleaseSchema>(
+        queryKeys.musicReleases.detail(id)
+      );
+      
+      queryClient.setQueryData(
+        queryKeys.musicReleases.detail(id),
+        { ...previousData, ...release, id }
+      );
+      
+      queryClient.setQueriesData<ReleaseSchema[]>(
+        { queryKey: queryKeys.musicReleases.lists() },
+        (old) => old?.map(r => r.id === id ? { ...r, ...release } : r)
+      );
+      
+      return { previousData };
+    },
+    
+    onError: (_error, { id }, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKeys.musicReleases.detail(id), context.previousData);
       }
+      queryClient.invalidateQueries({ queryKey: queryKeys.musicReleases.lists() });
+    },
+    
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.musicReleases.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.musicReleases.statusCounts() });
     },
@@ -305,14 +422,38 @@ export function useUpdateMusicRelease() {
 }
 
 /**
- * Hook pour supprimer une release
+ * Hook pour supprimer une release avec Optimistic Update
  */
 export function useDeleteMusicRelease() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: number) => musicReleaseApi.delete(id),
-    onSuccess: () => {
+    
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.musicReleases.lists() });
+      
+      const previousLists = queryClient.getQueriesData<ReleaseSchema[]>({
+        queryKey: queryKeys.musicReleases.lists()
+      });
+      
+      queryClient.setQueriesData<ReleaseSchema[]>(
+        { queryKey: queryKeys.musicReleases.lists() },
+        (old) => old?.filter(r => r.id !== id)
+      );
+      
+      queryClient.removeQueries({ queryKey: queryKeys.musicReleases.detail(id) });
+      
+      return { previousLists };
+    },
+    
+    onError: (_error, _id, context) => {
+      context?.previousLists?.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.musicReleases.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.musicReleases.statusCounts() });
     },
@@ -383,7 +524,7 @@ export function useCreateMusicVideo() {
 }
 
 /**
- * Hook pour mettre à jour une music video
+ * Hook pour mettre à jour une music video avec Optimistic Update
  */
 export function useUpdateMusicVideo() {
   const queryClient = useQueryClient();
@@ -391,13 +532,36 @@ export function useUpdateMusicVideo() {
   return useMutation({
     mutationFn: ({ id, video }: { id: number; video: MusicVideoSchema }) => 
       musicVideoApi.update(id, video),
-    onSuccess: (updatedVideo) => {
-      if (updatedVideo.id) {
-        queryClient.setQueryData(
-          queryKeys.musicVideos.detail(updatedVideo.id),
-          updatedVideo
-        );
+    
+    onMutate: async ({ id, video }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.musicVideos.lists() });
+      await queryClient.cancelQueries({ queryKey: queryKeys.musicVideos.detail(id) });
+      
+      const previousData = queryClient.getQueryData<MusicVideoSchema>(
+        queryKeys.musicVideos.detail(id)
+      );
+      
+      queryClient.setQueryData(
+        queryKeys.musicVideos.detail(id),
+        { ...previousData, ...video, id }
+      );
+      
+      queryClient.setQueriesData<MusicVideoSchema[]>(
+        { queryKey: queryKeys.musicVideos.lists() },
+        (old) => old?.map(v => v.id === id ? { ...v, ...video } : v)
+      );
+      
+      return { previousData };
+    },
+    
+    onError: (_error, { id }, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKeys.musicVideos.detail(id), context.previousData);
       }
+      queryClient.invalidateQueries({ queryKey: queryKeys.musicVideos.lists() });
+    },
+    
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.musicVideos.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.musicVideos.statusCounts() });
     },
@@ -405,14 +569,38 @@ export function useUpdateMusicVideo() {
 }
 
 /**
- * Hook pour supprimer une music video
+ * Hook pour supprimer une music video avec Optimistic Update
  */
 export function useDeleteMusicVideo() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: number) => musicVideoApi.delete(id),
-    onSuccess: () => {
+    
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.musicVideos.lists() });
+      
+      const previousLists = queryClient.getQueriesData<MusicVideoSchema[]>({
+        queryKey: queryKeys.musicVideos.lists()
+      });
+      
+      queryClient.setQueriesData<MusicVideoSchema[]>(
+        { queryKey: queryKeys.musicVideos.lists() },
+        (old) => old?.filter(v => v.id !== id)
+      );
+      
+      queryClient.removeQueries({ queryKey: queryKeys.musicVideos.detail(id) });
+      
+      return { previousLists };
+    },
+    
+    onError: (_error, _id, context) => {
+      context?.previousLists?.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.musicVideos.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.musicVideos.statusCounts() });
     },
