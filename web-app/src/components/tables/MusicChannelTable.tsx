@@ -5,17 +5,7 @@ import { MusicChannelSchema } from '@/types/api';
 import { DataTable } from '@/components/ui/data-table';
 import { StatusBadge } from '../ui';
 import { ColumnDef } from './BaseTable';
-
-// ============================================================================
-// Utility Functions
-// ============================================================================
-
-const formatNumber = (num?: number | null): string => {
-  if (!num) return '-';
-  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-  return num.toLocaleString();
-};
+import { formatNumber } from '@/lib/utils';
 
 // ============================================================================
 // Column Factories

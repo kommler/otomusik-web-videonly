@@ -4,7 +4,7 @@ import { PlayIcon, ClockIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { VideoSchema } from '@/types/api';
 import { DataTable } from '@/components/ui/data-table';
 import { Tooltip } from '@/components/ui';
-import { cn } from '@/lib/utils';
+import { cn, formatDuration, formatFileSize } from '@/lib/utils';
 import { ColumnDef } from './BaseTable';
 
 // ============================================================================
@@ -140,28 +140,6 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   }
 
   return badge;
-};
-
-// ============================================================================
-// Utility Functions
-// ============================================================================
-
-const formatDuration = (seconds?: number | null): string => {
-  if (!seconds) return '-';
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  }
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-};
-
-const formatFileSize = (bytes?: number | null): string => {
-  if (!bytes) return '-';
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
 };
 
 // ============================================================================

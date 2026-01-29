@@ -3,22 +3,12 @@ import { formatDistanceToNow } from 'date-fns';
 import { TvIcon, UsersIcon, PlayIcon, EyeIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { ChannelSchema } from '@/types/api';
 import { StatusBadge } from '../ui';
+import { formatNumber } from '@/lib/utils';
 import {
   createTableComponent,
   createNumberColumn,
   ColumnDef,
 } from './BaseTable';
-
-// ============================================================================
-// Utility Functions
-// ============================================================================
-
-const formatNumber = (num?: number | null): string => {
-  if (!num) return '-';
-  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-  return num.toLocaleString();
-};
 
 // ============================================================================
 // Custom Columns
