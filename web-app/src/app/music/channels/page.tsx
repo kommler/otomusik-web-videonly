@@ -165,6 +165,40 @@ export default function MusicChannelsPage() {
     }
   };
 
+  // Double-clic sur le statut : DOWNLOADED ↔ WAITING
+  const handleStatusDoubleClick = async (channel: MusicChannel) => {
+    if (!channel.id) return;
+    
+    const currentStatus = channel.status?.toUpperCase();
+    
+    if (currentStatus === 'DOWNLOADED') {
+      // DOWNLOADED → WAITING : pas de confirmation
+      setFormLoading(true);
+      try {
+        await updateChannel(channel.id, { ...channel, status: 'WAITING' });
+        fetchChannels(filters);
+      } catch (error) {
+        console.error('Error updating music channel status:', error);
+      } finally {
+        setFormLoading(false);
+      }
+    } else if (currentStatus === 'WAITING') {
+      // WAITING → DOWNLOADED : avec confirmation
+      if (confirm(`Repasser le canal "${channel.channel_name}" en DOWNLOADED ?`)) {
+        setFormLoading(true);
+        try {
+          await updateChannel(channel.id, { ...channel, status: 'DOWNLOADED' });
+          fetchChannels(filters);
+        } catch (error) {
+          console.error('Error updating music channel status:', error);
+        } finally {
+          setFormLoading(false);
+        }
+      }
+    }
+    // Autres statuts : ne rien faire
+  };
+
   const handleDelete = async (channel: MusicChannel) => {
     if (!channel.id) return;
     
@@ -277,6 +311,7 @@ export default function MusicChannelsPage() {
                 onView={handleView}
                 onEdit={handleEdit}
                 onSetWaiting={handleSetWaiting}
+                onStatusDoubleClick={handleStatusDoubleClick}
                 onDelete={handleDelete}
               />
             )}

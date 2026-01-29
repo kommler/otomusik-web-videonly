@@ -76,13 +76,18 @@ const createPlaylistCountColumn = (): ColumnDef<MusicChannelSchema> => ({
   ),
 });
 
-const createStatusColumn = (): ColumnDef<MusicChannelSchema> => ({
+const createStatusColumn = (
+  onStatusDoubleClick?: (channel: MusicChannelSchema) => void
+): ColumnDef<MusicChannelSchema> => ({
   key: 'status',
   title: 'Status',
   sortable: true,
   width: '120px',
-  render: (status: unknown) => (
-    <StatusBadge status={(status as string) || 'UNKNOWN'} />
+  render: (status: unknown, channel: MusicChannelSchema) => (
+    <StatusBadge 
+      status={(status as string) || 'UNKNOWN'} 
+      onDoubleClick={onStatusDoubleClick ? () => onStatusDoubleClick(channel) : undefined}
+    />
   ),
 });
 
@@ -149,6 +154,7 @@ interface MusicChannelTableProps {
   onEdit?: (channel: MusicChannelSchema) => void;
   onDelete?: (channel: MusicChannelSchema) => void;
   onSetWaiting?: (channel: MusicChannelSchema) => void;
+  onStatusDoubleClick?: (channel: MusicChannelSchema) => void;
   onRowClick?: (channel: MusicChannelSchema) => void;
 }
 
@@ -166,6 +172,7 @@ export const MusicChannelTable: React.FC<MusicChannelTableProps> = ({
   onEdit,
   onDelete,
   onSetWaiting,
+  onStatusDoubleClick,
   onRowClick,
 }) => {
   const columns = useMemo(() => [
@@ -173,11 +180,11 @@ export const MusicChannelTable: React.FC<MusicChannelTableProps> = ({
     createChannelNameColumn(),
     createUploaderColumn(),
     createPlaylistCountColumn(),
-    createStatusColumn(),
+    createStatusColumn(onStatusDoubleClick),
     createRefreshIntervalColumn(),
     createScrapedAtColumn(),
     createUpdatedAtColumn(),
-  ], []);
+  ], [onStatusDoubleClick]);
 
   return (
     <DataTable
