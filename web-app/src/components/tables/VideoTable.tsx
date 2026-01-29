@@ -4,7 +4,7 @@ import { PlayIcon, ClockIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { VideoSchema } from '@/types/api';
 import { DataTable } from '@/components/ui/data-table';
 import { Tooltip } from '@/components/ui';
-import { cn, formatDuration, formatFileSize } from '@/lib/utils';
+import { cn, formatDuration, formatFileSize, formatErrorMessage } from '@/lib/utils';
 import { getStatusColor } from '@/lib/status-utils';
 import { ColumnDef } from './BaseTable';
 
@@ -46,16 +46,6 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   onStatusDoubleClick,
 }) => {
   if (!status) return <span className="text-gray-400">-</span>;
-
-  const formatErrorMessage = (err: unknown): string => {
-    if (!err) return '';
-    if (typeof err === 'string') return err;
-    if (typeof err === 'object' && err !== null) {
-      if ('message' in err) return String((err as { message: unknown }).message);
-      return JSON.stringify(err, null, 2);
-    }
-    return String(err);
-  };
 
   const handleDoubleClick = () => {
     if (video && onStatusDoubleClick) {

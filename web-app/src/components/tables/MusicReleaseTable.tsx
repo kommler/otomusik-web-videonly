@@ -4,7 +4,7 @@ import { PlayIcon } from '@heroicons/react/24/outline';
 import { ReleaseSchema } from '@/types/api';
 import { DataTable } from '@/components/ui/data-table';
 import { Tooltip } from '@/components/ui';
-import { cn } from '@/lib/utils';
+import { cn, formatErrorMessage } from '@/lib/utils';
 import { getStatusColor } from '@/lib/status-utils';
 import { ColumnDef } from './BaseTable';
 
@@ -27,17 +27,6 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   onStatusDoubleClick,
 }) => {
   if (!status) return <span className="text-gray-400">-</span>;
-
-  const formatErrorMessage = (err: unknown): string => {
-    if (!err) return '';
-    if (typeof err === 'string') return err;
-    if (Array.isArray(err)) return err.join(', ');
-    try {
-      return JSON.stringify(err, null, 2);
-    } catch {
-      return 'Error details available';
-    }
-  };
 
   const hasErrors = Boolean(errors && typeof errors === 'object' && Object.keys(errors as object).length > 0);
   const errorMessage = formatErrorMessage(errors);
