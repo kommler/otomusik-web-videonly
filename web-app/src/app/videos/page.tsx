@@ -296,9 +296,6 @@ export default function VideosPage() {
   const openEditModal = (video: VideoSchema) => {
     setEditingVideo(video);
     
-    // Debug: Log the video resolution value
-    console.log('Video resolution from database:', video.resolution);
-    
     setFormData({
       oto_channel_id: video.oto_channel_id || null,
       title: video.title || video.video_name || '',

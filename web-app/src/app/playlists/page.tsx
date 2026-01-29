@@ -148,7 +148,6 @@ const PlaylistsPage: React.FC = () => {
 
   // Gestionnaires d'actions sur les playlists
   const handleView = useCallback((playlist: PlaylistSchema) => {
-    console.log('View playlist:', playlist.name || playlist.id);
     setSelectedPlaylist(playlist);
     
     // For now, show a prominent notification that view was clicked
@@ -160,7 +159,6 @@ const PlaylistsPage: React.FC = () => {
   }, [setSelectedPlaylist]);
 
   const handleEdit = useCallback((playlist: PlaylistSchema) => {
-    console.log('Edit playlist:', playlist.name || playlist.id);
     setEditingPlaylist(playlist);
     setSelectedPlaylist(playlist);
     populateFormWithPlaylist(playlist);
@@ -218,7 +216,6 @@ const PlaylistsPage: React.FC = () => {
     // TODO: Implement delete confirmation modal
     const confirmDelete = window.confirm(`Êtes-vous sûr de vouloir supprimer la playlist "${playlist.name || playlist.id}" ?`);
     if (confirmDelete) {
-      console.log('Delete confirmed for playlist:', playlist.name || playlist.id);
       // Here we would call the actual delete API
       // deletePlaylist(playlist.id);
     }

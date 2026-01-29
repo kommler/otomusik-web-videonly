@@ -72,9 +72,6 @@ async function apiRequest<T>(
   try {
     const url = `${API_BASE_URL}${endpoint}`;
     
-    // Debug logging for API calls
-    console.log('API Request:', url, { params: endpoint.includes('?') ? endpoint.split('?')[1] : 'none' });
-    
     const response = await fetch(url, config);
 
     if (!response.ok) {

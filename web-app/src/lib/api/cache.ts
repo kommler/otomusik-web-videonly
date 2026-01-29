@@ -147,12 +147,10 @@ export function withCache<T, P extends Record<string, unknown>>(
     // Essayer le cache d'abord
     const cached = apiCache.get<T>(endpoint, params as Record<string, unknown>);
     if (cached !== null) {
-      console.log(`[Cache HIT] ${endpoint}`);
       return cached;
     }
 
     // Sinon, faire la requête
-    console.log(`[Cache MISS] ${endpoint}`);
     const data = await fn(params);
     apiCache.set(endpoint, params as Record<string, unknown>, data, ttl);
     return data;

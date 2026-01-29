@@ -96,7 +96,6 @@ export default function MusicChannelsPage() {
 
   const handleView = (channel: MusicChannel) => {
     // TODO: Implement view modal
-    console.log('View channel:', channel);
   };
 
   const handleEdit = (channel: MusicChannel) => {

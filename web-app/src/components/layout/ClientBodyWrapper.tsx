@@ -25,7 +25,7 @@ export const ClientBodyWrapper: React.FC<ClientBodyWrapperProps> = ({ children }
     // Remove extension attributes to prevent future hydration warnings
     extensionAttributes.forEach(attr => {
       if (body.hasAttribute(attr)) {
-        console.log(`[ClientBodyWrapper] Detected browser extension attribute: ${attr}`);
+        // Browser extension detected, no action needed
       }
     });
   }, []);
