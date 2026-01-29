@@ -106,7 +106,7 @@ export default function MusicChannelsPage() {
       channel_name: channel.channel_name || '',
       url: channel.url || '',
       uploader: channel.uploader || '',
-      refresh_interval_days: channel.refresh_interval_days,
+      refresh_interval_days: channel.refresh_interval_days ?? null,
       scrap_options: channel.scrap_options || '',
     });
     setShowEditModal(true);

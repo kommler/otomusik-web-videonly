@@ -1,16 +1,13 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { 
-  QueueListIcon, 
   ChartBarIcon,
   CalendarIcon,
   GlobeAltIcon,
   MusicalNoteIcon
 } from '@heroicons/react/24/outline';
 import { PlaylistSchema } from '../../types/api';
-import { DataTable } from '../ui/data-table';
-import { Tooltip } from '../ui/tooltip';
-import { cn } from '../../lib/utils';
+import { DataTable, Tooltip, StatusBadge } from '../ui';
 
 interface MusicPlaylistTableProps {
   playlists: PlaylistSchema[];
@@ -24,40 +21,6 @@ interface MusicPlaylistTableProps {
   onRowClick?: (playlist: PlaylistSchema) => void;
   onStatusDoubleClick?: (playlist: PlaylistSchema) => void;
 }
-
-// Status color mapping for music playlists
-const getStatusColor = (status: string): string => {
-  const statusColors: Record<string, string> = {
-    WAITING: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
-    DOWNLOADED: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-    DOWNLOADING: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-    CURRENT: 'bg-sky-100 text-sky-800 dark:bg-sky-900/20 dark:text-sky-400',
-    ANALYZED: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-    FAILED: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-  };
-  return statusColors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
-};
-
-// Status badge component
-const StatusBadge: React.FC<{ 
-  status: string; 
-  onDoubleClick?: () => void; 
-}> = ({ status, onDoubleClick }) => {
-  if (!status) return <span className="text-gray-400">-</span>;
-  
-  return (
-    <span 
-      className={cn(
-        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize cursor-pointer select-none transition-all duration-200 hover:shadow-md",
-        getStatusColor(status)
-      )}
-      onDoubleClick={onDoubleClick}
-      title="Double-cliquez pour passer le statut en WAITING"
-    >
-      {status}
-    </span>
-  );
-};
 
 export const MusicPlaylistTable: React.FC<MusicPlaylistTableProps> = ({
   playlists,

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { MusicVideoSchema, MusicVideoQueryParams } from '../types/api';
 import { musicVideoApi, APIError } from '../lib/api/client';
+import { DEFAULT_PAGE_SIZE } from '../lib/status-utils';
 
 interface MusicVideoState {
   // Data
@@ -57,7 +58,7 @@ interface MusicVideoState {
 }
 
 const initialFilters: MusicVideoQueryParams = {
-  limit: 50,
+  limit: DEFAULT_PAGE_SIZE,
   sort_by: 'updated_at',
   sort_order: 'desc',
 };
@@ -78,7 +79,7 @@ export const useMusicVideoStore = create<MusicVideoState>()(
       error: null,
       filters: initialFilters,
       currentPage: 1,
-      pageSize: 100,
+      pageSize: DEFAULT_PAGE_SIZE,
 
       // Basic setters
       setVideos: (videos) => set({ videos }),

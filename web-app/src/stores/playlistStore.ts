@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { PlaylistSchema, PlaylistQueryParams } from '../types/api';
 import { playlistApi, APIError } from '../lib/api/client';
+import { DEFAULT_PAGE_SIZE } from '../lib/status-utils';
 
 interface PlaylistState {
   // Data
@@ -56,7 +57,7 @@ interface PlaylistState {
 }
 
 const initialFilters: PlaylistQueryParams = {
-  limit: 50,
+  limit: DEFAULT_PAGE_SIZE,
   sort_by: 'updated_at',
   sort_order: 'desc',
 };
@@ -77,7 +78,7 @@ export const usePlaylistStore = create<PlaylistState>()(
       error: null,
       filters: initialFilters,
       currentPage: 1,
-      pageSize: 50,
+      pageSize: DEFAULT_PAGE_SIZE,
       
       // Basic setters
       setPlaylists: (playlists) => set({ playlists }),

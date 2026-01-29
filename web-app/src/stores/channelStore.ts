@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { ChannelSchema, ChannelQueryParams } from '../types/api';
 import { channelApi, APIError } from '../lib/api/client';
+import { DEFAULT_PAGE_SIZE } from '../lib/status-utils';
 
 interface ChannelState {
   // Data
@@ -57,7 +58,7 @@ interface ChannelState {
 }
 
 const initialFilters: ChannelQueryParams = {
-  limit: 50,
+  limit: DEFAULT_PAGE_SIZE,
   sort_by: 'updated_at',
   sort_order: 'desc',
 };
@@ -78,7 +79,7 @@ export const useChannelStore = create<ChannelState>()(
       error: null,
       filters: initialFilters,
       currentPage: 1,
-      pageSize: 100,
+      pageSize: DEFAULT_PAGE_SIZE,
       
       // Basic setters
       setChannels: (channels) => set({ channels }),

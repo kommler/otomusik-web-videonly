@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { MusicChannelSchema, MusicChannelQueryParams, StatusCount } from '../types/api';
 import { musicChannelApi, APIError } from '../lib/api/client';
+import { DEFAULT_PAGE_SIZE } from '../lib/status-utils';
 
 interface MusicChannelState {
   // Data
@@ -41,7 +42,7 @@ interface MusicChannelState {
 }
 
 const initialFilters: MusicChannelQueryParams = {
-  limit: 50,
+  limit: DEFAULT_PAGE_SIZE,
   sort_by: 'updated_at',
   sort_order: 'desc',
 };
@@ -59,7 +60,7 @@ const initialState = {
   error: null,
   filters: initialFilters,
   currentPage: 1,
-  pageSize: 50,
+  pageSize: DEFAULT_PAGE_SIZE,
 };
 
 export const useMusicChannelStore = create<MusicChannelState>()(

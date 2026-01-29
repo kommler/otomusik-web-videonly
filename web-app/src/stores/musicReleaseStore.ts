@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { ReleaseSchema, MusicReleaseQueryParams } from '../types/api';
 import { musicReleaseApi, APIError } from '../lib/api/client';
+import { DEFAULT_PAGE_SIZE } from '../lib/status-utils';
 
 interface MusicReleaseState {
   // Data
@@ -54,8 +55,6 @@ interface MusicReleaseState {
   resetFilters: () => void;
 }
 
-const ITEMS_PER_PAGE = 100;
-
 export const useMusicReleaseStore = create<MusicReleaseState>()(
   devtools(
     (set, get) => ({
@@ -74,12 +73,12 @@ export const useMusicReleaseStore = create<MusicReleaseState>()(
       error: null,
 
       filters: {
-        limit: ITEMS_PER_PAGE,
+        limit: DEFAULT_PAGE_SIZE,
         sort_by: 'inserted_at',
         sort_order: 'desc',
       },
       currentPage: 1,
-      pageSize: ITEMS_PER_PAGE,
+      pageSize: DEFAULT_PAGE_SIZE,
 
       // Basic setters
       setReleases: (releases) => set({ releases }),
@@ -290,7 +289,7 @@ export const useMusicReleaseStore = create<MusicReleaseState>()(
       clearSelection: () => set({ selectedRelease: null }),
       resetFilters: () => set({
         filters: {
-          limit: ITEMS_PER_PAGE,
+          limit: DEFAULT_PAGE_SIZE,
           sort_by: 'inserted_at',
           sort_order: 'desc',
         },

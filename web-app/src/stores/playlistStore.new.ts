@@ -1,23 +1,23 @@
 import { PlaylistSchema, PlaylistQueryParams } from '../types/api';
-import { musicPlaylistApi } from '../lib/api/client';
+import { playlistApi } from '../lib/api/client';
 import { createEntityStore, EntityState } from './createEntityStore';
 import { DEFAULT_PAGE_SIZE } from '../lib/status-utils';
 
 /**
- * Store Music Playlist utilisant la factory générique
+ * Store Playlist utilisant la factory générique
  * Avec aliases pour compatibilité avec le code existant
  */
 
 // Créer le store de base avec la factory
 const baseStore = createEntityStore<PlaylistSchema, PlaylistQueryParams>({
-  name: 'music-playlist',
-  api: musicPlaylistApi,
+  name: 'playlist',
+  api: playlistApi,
   pageSize: DEFAULT_PAGE_SIZE,
   getId: (playlist) => playlist.id,
 });
 
 // Type étendu avec les aliases de compatibilité
-interface MusicPlaylistState extends EntityState<PlaylistSchema, PlaylistQueryParams> {
+interface PlaylistState extends EntityState<PlaylistSchema, PlaylistQueryParams> {
   // Aliases pour compatibilité
   playlists: PlaylistSchema[];
   allPlaylists: PlaylistSchema[];
@@ -38,10 +38,10 @@ interface MusicPlaylistState extends EntityState<PlaylistSchema, PlaylistQueryPa
 }
 
 /**
- * Hook du store Music Playlist avec compatibilité
+ * Hook du store Playlist avec compatibilité
  * Mappe les noms génériques vers les noms spécifiques à l'entité
  */
-export const useMusicPlaylistStore = () => {
+export const usePlaylistStore = () => {
   const store = baseStore();
   
   return {
@@ -67,5 +67,5 @@ export const useMusicPlaylistStore = () => {
     deletePlaylist: store.deleteItem,
     refreshPlaylists: store.refreshItems,
     clearSelection: store.clearSelection,
-  } as MusicPlaylistState;
+  } as PlaylistState;
 };
