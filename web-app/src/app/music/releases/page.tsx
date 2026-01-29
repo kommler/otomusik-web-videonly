@@ -1,11 +1,19 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { Suspense, useState, useCallback, useMemo } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Layout } from '@/components/layout/Layout';
 import { MusicReleaseTable } from '@/components/tables';
 import { MusicReleaseFilterPanel } from '@/components/filters';
-import { Button, LoadingSpinner, Modal, Pagination } from '@/components/ui';
+import { 
+  Button, 
+  Modal, 
+  Pagination,
+  TableSkeleton,
+  FilterSkeleton,
+  ErrorBoundary,
+  LoadingSpinner,
+} from '@/components/ui';
 import { FormInput, FormTextarea, FormSelect } from '@/components/ui/form';
 import { useMusicReleaseStore, useMusicChannelStore, useUIStore } from '@/stores';
 import { ReleaseSchema, MusicReleaseQueryParams } from '@/types/api';
@@ -351,65 +359,83 @@ export default function MusicReleasesPage() {
           </Button>
         </div>
 
-        {/* Filters */}
+        {/* Filters with Suspense */}
         <div className="mb-6">
-          <MusicReleaseFilterPanel
-            entityType="releases musicales"
-            filters={filters}
-            statusCounts={statusCounts}
-            onFiltersChange={setFilters}
-            loading={loading}
-            totalCount={totalCount}
-            onRefresh={handleRefresh}
-          />
+          <Suspense fallback={<FilterSkeleton filters={4} />}>
+            <MusicReleaseFilterPanel
+              entityType="releases musicales"
+              filters={filters}
+              statusCounts={statusCounts}
+              onFiltersChange={setFilters}
+              loading={loading}
+              totalCount={totalCount}
+              onRefresh={handleRefresh}
+            />
+          </Suspense>
         </div>
 
-        {/* Release Table */}
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <LoadingSpinner size="lg" />
-          </div>
-        ) : (
-          <>
-            {/* Top Pagination */}
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalRecords={totalCount}
-                pageSize={pageSize}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-                className="mb-4"
-              />
-            )}
+        {/* Release Table with Suspense */}
+        <ErrorBoundary
+          fallback={(error, reset) => (
+            <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <h3 className="text-red-800 dark:text-red-200 font-medium mb-2">
+                Échec du chargement des releases
+              </h3>
+              <p className="text-red-600 dark:text-red-400 text-sm mb-4">
+                {error.message}
+              </p>
+              <Button onClick={reset} variant="secondary">
+                Réessayer
+              </Button>
+            </div>
+          )}
+        >
+          <Suspense fallback={<TableSkeleton rows={10} columns={6} />}>
+            {loading ? (
+              <TableSkeleton rows={10} columns={6} />
+            ) : (
+              <>
+                {/* Top Pagination */}
+                {totalPages > 1 && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalRecords={totalCount}
+                    pageSize={pageSize}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                    className="mb-4"
+                  />
+                )}
 
-            <MusicReleaseTable
-              releases={releases}
-              loading={loading}
-              onSort={handleSort}
-              sortKey={filters.sort_by}
-              sortDirection={filters.sort_order}
-              onEdit={openEditModal}
-              onDelete={handleDeleteRelease}
-              onStatusChange={handleStatusChange}
-              onStatusDoubleClick={handleStatusDoubleClick}
-            />
+                <MusicReleaseTable
+                  releases={releases}
+                  loading={loading}
+                  onSort={handleSort}
+                  sortKey={filters.sort_by}
+                  sortDirection={filters.sort_order}
+                  onEdit={openEditModal}
+                  onDelete={handleDeleteRelease}
+                  onStatusChange={handleStatusChange}
+                  onStatusDoubleClick={handleStatusDoubleClick}
+                />
 
-            {/* Bottom Pagination */}
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalRecords={totalCount}
-                pageSize={pageSize}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-                className="mt-4"
-              />
+                {/* Bottom Pagination */}
+                {totalPages > 1 && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalRecords={totalCount}
+                    pageSize={pageSize}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                    className="mt-4"
+                  />
+                )}
+              </>
             )}
-          </>
-        )}
+          </Suspense>
+        </ErrorBoundary>
 
         {/* Create Modal */}
         <Modal

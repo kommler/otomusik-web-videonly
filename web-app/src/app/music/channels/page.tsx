@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { Suspense, useState, useMemo } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { MusicChannelTable } from '@/components/tables';
 import { MusicChannelFilterPanel } from '@/components/filters/MusicChannelFilterPanel';
@@ -10,7 +10,7 @@ import { Pagination } from '@/components/ui/pagination';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { LoadingSpinner } from '@/components/ui/loading';
+import { TableSkeleton, FilterSkeleton, ErrorBoundary, LoadingSpinner } from '@/components/ui';
 import { useInitialLoad } from '@/lib/hooks';
 
 const ITEMS_PER_PAGE = 25;
@@ -222,58 +222,83 @@ export default function MusicChannelsPage() {
           </div>
         </div>
 
-        {/* Panel de filtres */}
-        <MusicChannelFilterPanel
-          entityType="canaux musicaux"
-          filters={filters}
-          statusCounts={statusCountsRecord}
-          sortOptions={musicChannelFilterConfig.sortOptions}
-          onFiltersChange={handleFiltersChange}
-          loading={loading}
-          totalCount={totalChannels}
-        />
-
-        {/* Contrôles de pagination (haut) */}
-        {totalPages > 1 && (
-          <div className="flex justify-center">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalRecords={totalChannels}
-              pageSize={pageSize}
-              onPageChange={handlePageChange}
-            />
-          </div>
-        )}
-
-        {/* Table des canaux musicaux */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-          <MusicChannelTable
-            channels={channels}
+        {/* Panel de filtres avec Suspense */}
+        <Suspense fallback={<FilterSkeleton filters={4} />}>
+          <MusicChannelFilterPanel
+            entityType="canaux musicaux"
+            filters={filters}
+            statusCounts={statusCountsRecord}
+            sortOptions={musicChannelFilterConfig.sortOptions}
+            onFiltersChange={handleFiltersChange}
             loading={loading}
-            onSort={handleSort}
-            sortKey={filters.sort_by}
-            sortDirection={filters.sort_order}
-            onRowClick={handleRowClick}
-            onView={handleView}
-            onEdit={handleEdit}
-            onSetWaiting={handleSetWaiting}
-            onDelete={handleDelete}
+            totalCount={totalChannels}
           />
-        </div>
+        </Suspense>
 
-        {/* Contrôles de pagination (bas) */}
-        {totalPages > 1 && (
-          <div className="flex justify-center">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalRecords={totalChannels}
-              pageSize={pageSize}
-              onPageChange={handlePageChange}
-            />
-          </div>
-        )}
+        {/* Table avec Suspense */}
+        <ErrorBoundary
+          fallback={(error, reset) => (
+            <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <h3 className="text-red-800 dark:text-red-200 font-medium mb-2">
+                Échec du chargement des canaux
+              </h3>
+              <p className="text-red-600 dark:text-red-400 text-sm mb-4">
+                {error.message}
+              </p>
+              <Button onClick={reset} variant="secondary">
+                Réessayer
+              </Button>
+            </div>
+          )}
+        >
+          <Suspense fallback={<TableSkeleton rows={10} columns={6} />}>
+            {/* Contrôles de pagination (haut) */}
+            {totalPages > 1 && (
+              <div className="flex justify-center">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalRecords={totalChannels}
+                  pageSize={pageSize}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
+
+            {/* Table des canaux musicaux */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+              {loading ? (
+                <TableSkeleton rows={10} columns={6} showHeader={false} showPagination={false} />
+              ) : (
+                <MusicChannelTable
+                  channels={channels}
+                  loading={loading}
+                  onSort={handleSort}
+                  sortKey={filters.sort_by}
+                  sortDirection={filters.sort_order}
+                  onRowClick={handleRowClick}
+                  onView={handleView}
+                  onEdit={handleEdit}
+                  onSetWaiting={handleSetWaiting}
+                  onDelete={handleDelete}
+                />
+              )}
+            </div>
+
+            {/* Contrôles de pagination (bas) */}
+            {totalPages > 1 && (
+              <div className="flex justify-center">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalRecords={totalChannels}
+                  pageSize={pageSize}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
+          </Suspense>
+        </ErrorBoundary>
 
         {/* Modal d'édition */}
         <Modal

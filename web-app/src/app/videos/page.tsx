@@ -1,11 +1,19 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { Suspense, useState, useCallback, useMemo } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Layout } from '@/components/layout/Layout';
 import { VideoTable } from '@/components/tables';
 import { VideoFilterPanel } from '@/components/filters';
-import { Button, LoadingSpinner, Modal, Pagination } from '@/components/ui';
+import { 
+  Button, 
+  Modal, 
+  Pagination,
+  TableSkeleton,
+  FilterSkeleton,
+  ErrorBoundary,
+  LoadingSpinner,
+} from '@/components/ui';
 import { FormInput, FormTextarea, FormSelect } from '@/components/ui/form';
 import { useVideoStore, useChannelStore, useUIStore } from '@/stores';
 import { VideoSchema } from '@/types/api';
@@ -368,57 +376,75 @@ export default function VideosPage() {
           </Button>
         </div>
 
-        {/* Filters */}
+        {/* Filters with Suspense */}
         <div className="mb-6">
-          <VideoFilterPanel />
+          <Suspense fallback={<FilterSkeleton filters={4} />}>
+            <VideoFilterPanel />
+          </Suspense>
         </div>
 
-        {/* Video Table */}
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <LoadingSpinner size="lg" />
-          </div>
-        ) : (
-          <>
-            {/* Top Pagination */}
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalRecords={totalCount}
-                pageSize={pageSize}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-                className="mb-4"
-              />
-            )}
-            
-            <VideoTable
-              videos={videos}
-              loading={loading}
-              onSort={handleSort}
-              sortKey={filters.sort_by}
-              sortDirection={filters.sort_order}
-              onEdit={openEditModal}
-              onDelete={handleDeleteVideo}
-              onStatusChange={handleStatusChange}
-              onStatusDoubleClick={handleStatusDoubleClick}
-            />
+        {/* Video Table with Suspense */}
+        <ErrorBoundary
+          fallback={(error, reset) => (
+            <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <h3 className="text-red-800 dark:text-red-200 font-medium mb-2">
+                Failed to load videos
+              </h3>
+              <p className="text-red-600 dark:text-red-400 text-sm mb-4">
+                {error.message}
+              </p>
+              <Button onClick={reset} variant="secondary">
+                Try again
+              </Button>
+            </div>
+          )}
+        >
+          <Suspense fallback={<TableSkeleton rows={10} columns={6} />}>
+            {loading ? (
+              <TableSkeleton rows={10} columns={6} />
+            ) : (
+              <>
+                {/* Top Pagination */}
+                {totalPages > 1 && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalRecords={totalCount}
+                    pageSize={pageSize}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                    className="mb-4"
+                  />
+                )}
+                
+                <VideoTable
+                  videos={videos}
+                  loading={loading}
+                  onSort={handleSort}
+                  sortKey={filters.sort_by}
+                  sortDirection={filters.sort_order}
+                  onEdit={openEditModal}
+                  onDelete={handleDeleteVideo}
+                  onStatusChange={handleStatusChange}
+                  onStatusDoubleClick={handleStatusDoubleClick}
+                />
 
-            {/* Bottom Pagination */}
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalRecords={totalCount}
-                pageSize={pageSize}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-                className="mt-4"
-              />
+                {/* Bottom Pagination */}
+                {totalPages > 1 && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalRecords={totalCount}
+                    pageSize={pageSize}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                    className="mt-4"
+                  />
+                )}
+              </>
             )}
-          </>
-        )}
+          </Suspense>
+        </ErrorBoundary>
 
         {/* Create Modal */}
         <Modal

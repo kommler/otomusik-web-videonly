@@ -1,11 +1,19 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { Suspense, useState, useCallback, useMemo } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Layout } from '@/components/layout/Layout';
 import { MusicVideoTable } from '@/components/tables';
 import { MusicVideoFilterPanel } from '@/components/filters';
-import { Button, LoadingSpinner, Modal, Pagination } from '@/components/ui';
+import { 
+  Button, 
+  Modal, 
+  Pagination,
+  TableSkeleton,
+  FilterSkeleton,
+  ErrorBoundary,
+  LoadingSpinner,
+} from '@/components/ui';
 import { FormInput, FormTextarea, FormSelect } from '@/components/ui/form';
 import { useMusicVideoStore, useMusicChannelStore, useUIStore } from '@/stores';
 import { MusicVideoSchema } from '@/types/api';
@@ -305,76 +313,94 @@ export default function MusicVideosPage() {
           </Button>
         </div>
 
-        {/* Filters */}
+        {/* Filters with Suspense */}
         <div className="mb-6">
-          <MusicVideoFilterPanel
-            filters={filters}
-            onFiltersChange={setFilters}
-            onClearFilters={() => {
-              setFilters({
-                limit: 100,
-                sort_by: 'updated_at',
-                sort_order: 'desc',
-              });
-            }}
-            activeFiltersCount={Object.keys(filters).filter(key =>
-              filters[key as keyof typeof filters] !== undefined &&
-              key !== 'limit' &&
-              key !== 'sort_by' &&
-              key !== 'sort_order'
-            ).length}
-            statusCounts={statusCounts}
-            totalFilteredCount={totalCount}
-            onRefresh={handleRefresh}
-            loading={loading}
-          />
+          <Suspense fallback={<FilterSkeleton filters={4} />}>
+            <MusicVideoFilterPanel
+              filters={filters}
+              onFiltersChange={setFilters}
+              onClearFilters={() => {
+                setFilters({
+                  limit: 100,
+                  sort_by: 'updated_at',
+                  sort_order: 'desc',
+                });
+              }}
+              activeFiltersCount={Object.keys(filters).filter(key =>
+                filters[key as keyof typeof filters] !== undefined &&
+                key !== 'limit' &&
+                key !== 'sort_by' &&
+                key !== 'sort_order'
+              ).length}
+              statusCounts={statusCounts}
+              totalFilteredCount={totalCount}
+              onRefresh={handleRefresh}
+              loading={loading}
+            />
+          </Suspense>
         </div>
 
-        {/* Music Video Table */}
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <LoadingSpinner size="lg" />
-          </div>
-        ) : (
-          <>
-            {/* Top Pagination */}
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalRecords={totalCount}
-                pageSize={pageSize}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-                className="mb-4"
-              />
-            )}
+        {/* Music Video Table with Suspense */}
+        <ErrorBoundary
+          fallback={(error, reset) => (
+            <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <h3 className="text-red-800 dark:text-red-200 font-medium mb-2">
+                Failed to load music videos
+              </h3>
+              <p className="text-red-600 dark:text-red-400 text-sm mb-4">
+                {error.message}
+              </p>
+              <Button onClick={reset} variant="secondary">
+                Try again
+              </Button>
+            </div>
+          )}
+        >
+          <Suspense fallback={<TableSkeleton rows={10} columns={6} />}>
+            {loading ? (
+              <TableSkeleton rows={10} columns={6} />
+            ) : (
+              <>
+                {/* Top Pagination */}
+                {totalPages > 1 && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalRecords={totalCount}
+                    pageSize={pageSize}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                    className="mb-4"
+                  />
+                )}
 
-            <MusicVideoTable
-              videos={videos}
-              loading={loading}
-              onSort={handleSort}
-              sortKey={filters.sort_by}
-              sortDirection={filters.sort_order}
-              onEdit={openEditModal}
-              onDelete={handleDeleteVideo}
-              onStatusChange={handleStatusChange}
-            />
+                <MusicVideoTable
+                  videos={videos}
+                  loading={loading}
+                  onSort={handleSort}
+                  sortKey={filters.sort_by}
+                  sortDirection={filters.sort_order}
+                  onEdit={openEditModal}
+                  onDelete={handleDeleteVideo}
+                  onStatusChange={handleStatusChange}
+                />
 
-            {/* Bottom Pagination */}
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalRecords={totalCount}
-                pageSize={pageSize}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-                className="mt-4"
-              />
+                {/* Bottom Pagination */}
+                {totalPages > 1 && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalRecords={totalCount}
+                    pageSize={pageSize}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                    className="mt-4"
+                  />
+                )}
+              </>
             )}
-          </>
-        )}
+          </Suspense>
+        </ErrorBoundary>
 
         {/* Create Modal */}
         <Modal
