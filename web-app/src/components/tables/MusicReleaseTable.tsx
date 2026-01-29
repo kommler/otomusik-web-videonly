@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react';
-import { formatDistanceToNow } from 'date-fns';
 import { PlayIcon } from '@heroicons/react/24/outline';
 import { ReleaseSchema } from '@/types/api';
 import { DataTable } from '@/components/ui/data-table';
 import { Tooltip } from '@/components/ui';
-import { cn, formatErrorMessage } from '@/lib/utils';
+import { cn, formatErrorMessage, formatRelativeDate } from '@/lib/utils';
 import { getStatusColor } from '@/lib/status-utils';
 import { ColumnDef } from './BaseTable';
 
@@ -220,7 +219,7 @@ export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
             {release?.inserted_at ? (
               <Tooltip content={new Date(release.inserted_at).toLocaleString()}>
                 <span>
-                  {formatDistanceToNow(new Date(release.inserted_at), { addSuffix: true })}
+                  {formatRelativeDate(release.inserted_at)}
                 </span>
               </Tooltip>
             ) : (
@@ -238,7 +237,7 @@ export const MusicReleaseTable: React.FC<MusicReleaseTableProps> = ({
             {release?.downloaded_at ? (
               <Tooltip content={new Date(release.downloaded_at).toLocaleString()}>
                 <span>
-                  {formatDistanceToNow(new Date(release.downloaded_at), { addSuffix: true })}
+                  {formatRelativeDate(release.downloaded_at)}
                 </span>
               </Tooltip>
             ) : (

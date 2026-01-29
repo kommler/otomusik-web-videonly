@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
-import { formatDistanceToNow } from 'date-fns';
 import { MusicalNoteIcon, QueueListIcon, CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { MusicChannelSchema } from '@/types/api';
 import { DataTable } from '@/components/ui/data-table';
 import { StatusBadge } from '../ui';
 import { ColumnDef } from './BaseTable';
-import { formatNumber } from '@/lib/utils';
+import { formatNumber, formatRelativeDate } from '@/lib/utils';
 
 // ============================================================================
 // Column Factories
@@ -109,13 +108,12 @@ const createScrapedAtColumn = (): ColumnDef<MusicChannelSchema> => ({
   width: '140px',
   render: (scrapedAt: unknown) => {
     const dateStr = scrapedAt as string | null;
+    const formatted = formatRelativeDate(dateStr);
     return (
       <div className="flex items-center space-x-1">
         <CalendarIcon className="h-4 w-4 text-gray-400" />
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          {dateStr
-            ? formatDistanceToNow(new Date(dateStr), { addSuffix: true })
-            : 'Never'}
+          {formatted === '-' ? 'Never' : formatted}
         </span>
       </div>
     );
@@ -131,9 +129,7 @@ const createUpdatedAtColumn = (): ColumnDef<MusicChannelSchema> => ({
     const dateStr = updatedAt as string | null;
     return (
       <span className="text-sm text-gray-500 dark:text-gray-400">
-        {dateStr
-          ? formatDistanceToNow(new Date(dateStr), { addSuffix: true })
-          : '-'}
+        {formatRelativeDate(dateStr)}
       </span>
     );
   },

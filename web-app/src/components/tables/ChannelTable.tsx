@@ -1,9 +1,8 @@
 import React from 'react';
-import { formatDistanceToNow } from 'date-fns';
 import { TvIcon, UsersIcon, PlayIcon, EyeIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { ChannelSchema } from '@/types/api';
 import { StatusBadge } from '../ui';
-import { formatNumber } from '@/lib/utils';
+import { formatNumber, formatRelativeDate } from '@/lib/utils';
 import {
   createTableComponent,
   createNumberColumn,
@@ -142,13 +141,12 @@ const createRefreshedAtColumn = (): ColumnDef<ChannelSchema> => ({
   width: '140px',
   render: (refreshedAt: unknown) => {
     const dateStr = refreshedAt as string | null;
+    const formatted = formatRelativeDate(dateStr);
     return (
       <div className="flex items-center space-x-1">
         <CalendarIcon className="h-4 w-4 text-gray-400" />
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          {dateStr
-            ? formatDistanceToNow(new Date(dateStr), { addSuffix: true })
-            : 'Never'}
+          {formatted === '-' ? 'Never' : formatted}
         </span>
       </div>
     );

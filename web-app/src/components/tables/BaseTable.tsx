@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, ReactNode } from 'react';
-import { formatDistanceToNow } from 'date-fns';
 import { CalendarIcon, GlobeAltIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { formatRelativeDate } from '@/lib/utils';
 import { DataTable, Tooltip, StatusBadge } from '../ui';
 
 // ============================================================================
@@ -99,9 +99,7 @@ export function createDateColumn<T extends BaseEntity>(
       const dateStr = value as string | null;
       const content = (
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          {dateStr
-            ? formatDistanceToNow(new Date(dateStr), { addSuffix: true })
-            : '-'}
+          {formatRelativeDate(dateStr)}
         </span>
       );
 

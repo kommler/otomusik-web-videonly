@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react';
-import { formatDistanceToNow } from 'date-fns';
 import { PlayIcon, ClockIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { VideoSchema } from '@/types/api';
 import { DataTable } from '@/components/ui/data-table';
 import { Tooltip } from '@/components/ui';
-import { cn, formatDuration, formatFileSize, formatErrorMessage } from '@/lib/utils';
+import { cn, formatDuration, formatFileSize, formatErrorMessage, formatRelativeDate } from '@/lib/utils';
 import { getStatusColor } from '@/lib/status-utils';
 import { ColumnDef } from './BaseTable';
 
@@ -256,7 +255,7 @@ export const VideoTable: React.FC<VideoTableProps> = ({
           const dateStr = publishedAt as string | null;
           return (
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {dateStr ? formatDistanceToNow(new Date(dateStr), { addSuffix: true }) : '-'}
+              {formatRelativeDate(dateStr)}
             </span>
           );
         },
@@ -270,7 +269,7 @@ export const VideoTable: React.FC<VideoTableProps> = ({
           const dateStr = updatedAt as string | null;
           return (
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {dateStr ? formatDistanceToNow(new Date(dateStr), { addSuffix: true }) : '-'}
+              {formatRelativeDate(dateStr)}
             </span>
           );
         },

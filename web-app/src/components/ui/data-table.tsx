@@ -10,7 +10,6 @@ import {
 import { cn } from '@/lib/utils';
 import { VideoSchema } from '@/types/api';
 import { Button } from '@/components/ui';
-import { formatDistanceToNow } from 'date-fns';
 
 interface Column<T> {
   key: keyof T | string;
