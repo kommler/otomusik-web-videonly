@@ -13,12 +13,12 @@ import {
 // ============================================================================
 
 const createPlaylistNameColumn = (): ColumnDef<PlaylistSchema> => ({
-  key: 'name',
+  key: 'playlist_name',
   title: 'Playlist',
   sortable: true,
   width: '250px',
   render: (name: unknown, playlist: PlaylistSchema) => {
-    const nameStr = name as string | null;
+    const nameStr = (name as string | null) || playlist.name;
     return (
       <div className="flex items-center space-x-3">
         <div className="flex-shrink-0">
