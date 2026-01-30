@@ -16,13 +16,24 @@ const VIDEO_SORT_OPTIONS: SortOption[] = [
 
 interface VideoFilterPanelProps {
   className?: string;
+  onRefresh?: () => void;
 }
 
-export function VideoFilterPanel({ className }: VideoFilterPanelProps) {
-  const { filters, statusCounts, totalCount, loading, setFilters } = useVideoStore();
+export function VideoFilterPanel({ className, onRefresh }: VideoFilterPanelProps) {
+  const { filters, statusCounts, totalCount, loading, setFilters, fetchVideos, fetchStatusCounts } = useVideoStore();
 
   const handleFiltersChange = (newFilters: Record<string, unknown>) => {
     setFilters(newFilters as VideoQueryParams);
+  };
+
+  // Utilise le callback passé ou fait un refresh via le store
+  const handleRefresh = () => {
+    if (onRefresh) {
+      onRefresh();
+    } else {
+      fetchVideos(filters);
+      fetchStatusCounts(filters);
+    }
   };
 
   return (
@@ -32,6 +43,7 @@ export function VideoFilterPanel({ className }: VideoFilterPanelProps) {
       statusCounts={statusCounts}
       sortOptions={VIDEO_SORT_OPTIONS}
       onFiltersChange={handleFiltersChange}
+      onRefresh={handleRefresh}
       loading={loading}
       totalCount={totalCount}
       className={className}

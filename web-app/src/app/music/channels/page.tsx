@@ -94,6 +94,11 @@ export default function MusicChannelsPage() {
     });
   };
 
+  // Rafraîchir les données (sans cache)
+  const handleRefresh = () => {
+    fetchChannels(filters);
+  };
+
   const handleView = (channel: MusicChannel) => {
     // TODO: Implement view modal
   };
@@ -241,6 +246,7 @@ export default function MusicChannelsPage() {
           statusCounts={statusCountsRecord}
           sortOptions={musicChannelFilterConfig.sortOptions}
           onFiltersChange={handleFiltersChange}
+          onRefresh={handleRefresh}
           loading={loading}
           totalCount={totalChannels}
         />

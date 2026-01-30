@@ -15,13 +15,24 @@ const CHANNEL_SORT_OPTIONS: SortOption[] = [
 
 interface ChannelFilterPanelProps {
   className?: string;
+  onRefresh?: () => void;
 }
 
-export function ChannelFilterPanel({ className }: ChannelFilterPanelProps) {
-  const { filters, statusCounts, totalCount, loading, setFilters } = useChannelStore();
+export function ChannelFilterPanel({ className, onRefresh }: ChannelFilterPanelProps) {
+  const { filters, statusCounts, totalCount, loading, setFilters, fetchChannels, fetchStatusCounts } = useChannelStore();
 
   const handleFiltersChange = (newFilters: Record<string, unknown>) => {
     setFilters(newFilters as ChannelQueryParams);
+  };
+
+  // Utilise le callback passé ou fait un refresh via le store
+  const handleRefresh = () => {
+    if (onRefresh) {
+      onRefresh();
+    } else {
+      fetchChannels(filters);
+      fetchStatusCounts(filters);
+    }
   };
 
   return (
@@ -31,6 +42,7 @@ export function ChannelFilterPanel({ className }: ChannelFilterPanelProps) {
       statusCounts={statusCounts}
       sortOptions={CHANNEL_SORT_OPTIONS}
       onFiltersChange={handleFiltersChange}
+      onRefresh={handleRefresh}
       loading={loading}
       totalCount={totalCount}
       className={className}

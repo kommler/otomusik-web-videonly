@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { Button, SearchInput } from '../ui';
 import { getStatusFilterColors } from '../../lib/status-utils';
 import { cn } from '../../lib/utils';
@@ -51,6 +51,7 @@ export function BaseFilterPanel<Q extends Record<string, unknown>>({
   statusCounts,
   sortOptions,
   onFiltersChange,
+  onRefresh,
   loading = false,
   totalCount = 0,
   className,
@@ -150,6 +151,21 @@ export function BaseFilterPanel<Q extends Record<string, unknown>>({
           >
             <XMarkIcon className="h-4 w-4 mr-1" />
             Effacer
+          </Button>
+        )}
+        
+        {/* Bouton Refresh - recharge les données sans cache */}
+        {onRefresh && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onRefresh}
+            disabled={loading}
+            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            title="Rafraîchir les données (sans cache)"
+          >
+            <ArrowPathIcon className={cn("h-4 w-4 mr-1", loading && "animate-spin")} />
+            Rafraîchir
           </Button>
         )}
       </div>

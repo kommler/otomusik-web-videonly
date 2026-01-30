@@ -308,6 +308,12 @@ const PlaylistsPage: React.FC = () => {
     }
   }, [updatePlaylist, addNotification, fetchPlaylists, fetchStatusCounts]);
 
+  // Rafraîchir les données (sans cache)
+  const handleRefresh = useCallback(() => {
+    fetchPlaylists();
+    fetchStatusCounts();
+  }, [fetchPlaylists, fetchStatusCounts]);
+
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
@@ -358,6 +364,7 @@ const PlaylistsPage: React.FC = () => {
           statusCounts={statusCounts}
           sortOptions={playlistFilterConfig.sortOptions}
           onFiltersChange={handleFiltersChange}
+          onRefresh={handleRefresh}
           loading={loading}
           totalCount={totalCount}
         />
