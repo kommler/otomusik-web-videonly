@@ -20,12 +20,17 @@ import { FormInput, FormTextarea, FormSelect } from '@/components/ui/form';
 export interface FormFieldConfig {
   name: string;
   label: string;
-  type: 'text' | 'url' | 'number' | 'textarea' | 'select';
+  type: 'text' | 'url' | 'number' | 'textarea' | 'select' | 'channel-select';
   required?: boolean;
   placeholder?: string;
   options?: { value: string; label: string }[];
   gridSpan?: 1 | 2; // Pour les layouts 2 colonnes
   min?: number;
+}
+
+export interface ChannelOption {
+  id: number | null | undefined;
+  name: string;
 }
 
 export interface BasePlaylistPageLabels {
@@ -48,6 +53,9 @@ export interface BasePlaylistPageConfig<TPlaylist, TFilters> {
   
   // Form fields configuration
   formFields: FormFieldConfig[];
+  
+  // Channel options for channel-select fields
+  channelOptions?: ChannelOption[];
   
   // Show create button and modal
   showCreateButton?: boolean;
@@ -114,6 +122,7 @@ export interface BasePlaylistPageConfig<TPlaylist, TFilters> {
 export function BasePlaylistPage<TPlaylist, TFilters>({
   labels,
   formFields,
+  channelOptions,
   showCreateButton = false,
   renderFilterPanel,
   renderTable,
@@ -267,6 +276,26 @@ export function BasePlaylistPage<TPlaylist, TFilters>({
           rows={3}
           disabled={formLoading}
         />
+      );
+    }
+    
+    if (field.type === 'channel-select') {
+      return (
+        <FormSelect
+          key={field.name}
+          label={field.label}
+          value={(value as string) || ''}
+          onChange={(e) => handleFormChange(field.name, e.target.value)}
+          required={field.required}
+          disabled={formLoading}
+        >
+          <option value="">Sélectionner un canal</option>
+          {(channelOptions || []).map(channel => (
+            <option key={channel.id ?? 'none'} value={channel.name}>
+              {channel.name || 'Canal sans nom'}
+            </option>
+          ))}
+        </FormSelect>
       );
     }
     
