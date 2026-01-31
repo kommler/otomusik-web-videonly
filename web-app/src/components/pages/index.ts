@@ -10,3 +10,11 @@ export type {
   BasePlaylistPageConfig, 
   BasePlaylistPageLabels,
 } from './BasePlaylistPage';
+
+export { BaseVideoPage } from './BaseVideoPage';
+export type { 
+  BaseVideoPageConfig, 
+  BaseVideoPageLabels,
+  ChannelOption,
+  FormFieldConfig as VideoFormFieldConfig,
+} from './BaseVideoPage';
