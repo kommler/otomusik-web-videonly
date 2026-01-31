@@ -1,70 +1,115 @@
 'use client';
 
-import React, { Suspense, useCallback, useState } from 'react';
-import { Layout } from '../../components/layout/Layout';
-import { LazyPlaylistFilterPanel } from '../../components/filters';
-import { LazyPlaylistTable } from '../../components/tables';
-import { Button } from '../../components/ui/button';
-import { Pagination } from '../../components/ui/pagination';
-import { LazyModal as Modal } from '../../components/ui';
-import { FormInput, FormTextarea, FormSelect } from '../../components/ui/form';
-import { TableSkeleton, FilterSkeleton, ErrorBoundary } from '../../components/ui';
-import { usePlaylistStore } from '../../stores';
-import { PlaylistSchema, PlaylistQueryParams } from '../../types/api';
-import { useUIStore } from '../../stores/uiStore';
-import { useInitialLoad, useFilteredLoad } from '../../lib/hooks';
+import React, { useCallback } from 'react';
+import { LazyPlaylistTable } from '@/components/tables';
+import { LazyPlaylistFilterPanel } from '@/components/filters';
+import { BasePlaylistPage, FormFieldConfig, BasePlaylistPageLabels } from '@/components/pages';
+import { usePlaylistStore, useUIStore } from '@/stores';
+import { PlaylistSchema, PlaylistQueryParams } from '@/types/api';
+import { useInitialLoad, useFilteredLoad } from '@/lib/hooks';
 
-// Configuration des filtres spécifiques aux playlists
-const playlistFilterConfig = {
-  sortOptions: [
-    { value: 'name', label: 'Nom' },
-    { value: 'status', label: 'Statut' },
-    { value: 'current_index', label: 'Progression' },
-    { value: 'inserted_at', label: 'Date de création' },
-    { value: 'updated_at', label: 'Dernière modification' },
-    { value: 'downloaded_at', label: 'Date de téléchargement' },
-  ],
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
+
+const playlistFormFields: FormFieldConfig[] = [
+  { name: 'name', label: 'Name', type: 'text', required: true },
+  { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Optional description...' },
+  { name: 'url', label: 'URL', type: 'url', placeholder: 'https://www.youtube.com/playlist?list=...' },
+  { name: 'topic', label: 'Topic', type: 'text', placeholder: 'e.g. music, tech, education...' },
+  { name: 'resolution', label: 'Resolution', type: 'select', options: [
+    { value: '', label: 'Select resolution' },
+    { value: '720', label: '720p' },
+    { value: '1080', label: '1080p' },
+    { value: '1440', label: '1440p' },
+    { value: '2160', label: '4K' },
+  ]},
+  { name: 'status', label: 'Status', type: 'select', options: [
+    { value: '', label: 'Select status' },
+    { value: 'WAITING', label: 'Waiting' },
+    { value: 'DOWNLOADING', label: 'Downloading' },
+    { value: 'DOWNLOADED', label: 'Downloaded' },
+    { value: 'CURRENT', label: 'Current' },
+    { value: 'ANALYZED', label: 'Analyzed' },
+    { value: 'FAILED', label: 'Failed' },
+  ]},
+];
+
+const sortOptions = [
+  { value: 'name', label: 'Nom' },
+  { value: 'status', label: 'Statut' },
+  { value: 'current_index', label: 'Progression' },
+  { value: 'inserted_at', label: 'Date de création' },
+  { value: 'updated_at', label: 'Dernière modification' },
+  { value: 'downloaded_at', label: 'Date de téléchargement' },
+];
+
+const labels: BasePlaylistPageLabels = {
+  pageTitle: 'Gestion des Playlists',
+  pageSubtitle: (count: number) => count > 0 
+    ? `${count} playlist${count > 1 ? 's' : ''} trouvée${count > 1 ? 's' : ''}`
+    : 'Aucune playlist trouvée',
+  createButton: 'Nouvelle Playlist',
+  createModalTitle: 'Créer une Nouvelle Playlist',
+  editModalTitle: 'Edit Playlist',
+  cancelButton: 'Cancel',
+  createSubmitButton: 'Create Playlist',
+  editSubmitButton: 'Update Playlist',
+  loadingError: 'Échec du chargement des playlists',
+  retryButton: 'Réessayer',
+  deleteConfirm: (name: string) => `Êtes-vous sûr de vouloir supprimer la playlist "${name}" ?`,
 };
 
-// Status options for playlist editing
-const playlistStatusOptions = [
-  { value: 'WAITING', label: 'Waiting' },
-  { value: 'DOWNLOADING', label: 'Downloading' },
-  { value: 'DOWNLOADED', label: 'Downloaded' },
-  { value: 'CURRENT', label: 'Current' },
-  { value: 'ANALYZED', label: 'Analyzed' },
-  { value: 'FAILED', label: 'Failed' },
-];
+// ============================================================================
+// HELPERS
+// ============================================================================
 
-// Resolution options
-const resolutionOptions = [
-  { value: '720', label: '720p' },
-  { value: '1080', label: '1080p' },
-  { value: '1440', label: '1440p' },
-  { value: '2160', label: '4K' },
-];
+const getInitialFormData = () => ({
+  name: '',
+  description: '',
+  url: '',
+  topic: '',
+  resolution: '',
+  status: '',
+});
 
-const PlaylistsPage: React.FC = () => {
+const playlistToFormData = (playlist: PlaylistSchema): Record<string, unknown> => ({
+  name: playlist.name || '',
+  description: playlist.description || '',
+  url: playlist.url || '',
+  topic: playlist.topic || '',
+  resolution: playlist.resolution || '',
+  status: playlist.status || '',
+});
+
+const formDataToPlaylist = (
+  formData: Record<string, unknown>, 
+  existingPlaylist?: PlaylistSchema
+): Partial<PlaylistSchema> => ({
+  ...(existingPlaylist || {}),
+  name: formData.name as string,
+  description: (formData.description as string) || null,
+  url: (formData.url as string) || null,
+  topic: (formData.topic as string) || null,
+  resolution: (formData.resolution as string) || null,
+  status: (formData.status as string) || null,
+});
+
+// ============================================================================
+// PAGE COMPONENT
+// ============================================================================
+
+export default function PlaylistsPage() {
   const {
-    // Data
     playlists,
     selectedPlaylist,
     totalCount,
     statusCounts,
-    
-    // Loading states
     loading,
-    creating,
-    updating,
-    deleting,
     error,
-    
-    // Filters and pagination
     filters,
     currentPage,
     pageSize,
-    
-    // Actions
     setFilters,
     setCurrentPage,
     setSelectedPlaylist,
@@ -74,473 +119,174 @@ const PlaylistsPage: React.FC = () => {
     updatePlaylist,
     deletePlaylist,
     clearError,
-    clearSelection,
   } = usePlaylistStore();
 
   const { addNotification } = useUIStore();
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [editingPlaylist, setEditingPlaylist] = useState<PlaylistSchema | null>(null);
-  const [formLoading, setFormLoading] = useState(false);
-  
-  // Form data state
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    url: '',
-    topic: '',
-    resolution: '',
-    status: '',
-  });
-
-  // Chargement initial une seule fois (requêtes en parallèle)
+  // Initial load
   useInitialLoad([
     () => fetchPlaylists(),
     () => fetchStatusCounts(),
   ]);
 
-  // Re-fetch seulement quand les filtres changent (skip le premier render)
+  // Re-fetch when filters change
   useFilteredLoad(filters, [
     () => fetchPlaylists(),
     () => fetchStatusCounts(),
   ], { skipInitial: true });
 
-  // Form handling functions
-  const handleFormChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      url: '',
-      topic: '',
-      resolution: '',
-      status: '',
-    });
-  };
-
-  const populateFormWithPlaylist = (playlist: PlaylistSchema) => {
-    setFormData({
-      name: playlist.name || '',
-      description: playlist.description || '',
-      url: playlist.url || '',
-      topic: playlist.topic || '',
-      resolution: playlist.resolution || '',
-      status: playlist.status || '',
-    });
-  };
-
-  // Gestionnaire de changement de filtres
+  // Handler for filter changes
   const handleFiltersChange = useCallback((newFilters: PlaylistQueryParams) => {
     setFilters(newFilters);
   }, [setFilters]);
 
-  // Gestionnaire de changement de page
-  const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
-  }, [setCurrentPage]);
-
-  // Gestionnaires d'actions sur les playlists
-  const handleView = useCallback((playlist: PlaylistSchema) => {
-    setSelectedPlaylist(playlist);
-    
-    // For now, show a prominent notification that view was clicked
-    // TODO: Replace this with actual view modal
-    const viewMessage = `👁️ VIEW CLICKED!\n\nPlaylist: ${playlist.name || 'Unnamed'}\nID: ${playlist.id}\nDescription: ${playlist.description || 'No description'}\n\n(View modal not implemented yet)`;
-    alert(viewMessage);
-    
-    // TODO: Implement view modal or navigate to detail page
-  }, [setSelectedPlaylist]);
-
-  const handleEdit = useCallback((playlist: PlaylistSchema) => {
-    setEditingPlaylist(playlist);
-    setSelectedPlaylist(playlist);
-    populateFormWithPlaylist(playlist);
-    setIsEditModalOpen(true);
-  }, [setSelectedPlaylist]);
-
-  const handleEditPlaylist = async () => {
-    if (!editingPlaylist?.id) return;
-
-    setFormLoading(true);
-    try {
-      // Create complete playlist data object with all required fields
-      const playlistData: PlaylistSchema = {
-        ...editingPlaylist, // Start with existing playlist data
-        // Override with form data
-        name: formData.name,
-        description: formData.description || null,
-        url: formData.url,
-        topic: formData.topic || null,
-        resolution: formData.resolution || null,
-        status: formData.status || null,
-      };
-
-      const updatedPlaylist = await updatePlaylist(editingPlaylist.id, playlistData);
-      
-      if (updatedPlaylist) {
-        setIsEditModalOpen(false);
-        setEditingPlaylist(null);
-        resetForm();
-
-        addNotification({
-          type: 'success',
-          title: 'Playlist Updated',
-          message: `Playlist "${updatedPlaylist.name}" has been updated successfully.`,
-        });
-
-        // Recharger les données
-        fetchPlaylists();
-        fetchStatusCounts();
-      }
-    } catch (error) {
-      console.error('Failed to update playlist:', error);
-      addNotification({
-        type: 'error',
-        title: 'Update Failed',
-        message: 'Failed to update the playlist. Please try again.',
-      });
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
-  const handleDelete = useCallback((playlist: PlaylistSchema) => {
-    setSelectedPlaylist(playlist);
-    // TODO: Implement delete confirmation modal
-    const confirmDelete = window.confirm(`Êtes-vous sûr de vouloir supprimer la playlist "${playlist.name || playlist.id}" ?`);
-    if (confirmDelete) {
-      // Here we would call the actual delete API
-      // deletePlaylist(playlist.id);
-    }
-    // setIsDeleteModalOpen(true);
-  }, [setSelectedPlaylist]);
-
-  const handleCreate = useCallback(() => {
-    clearSelection();
-    setIsCreateModalOpen(true);
-  }, [clearSelection]);
-
-  // Gestionnaire de création
-  const handleCreateSubmit = useCallback(async (playlistData: PlaylistSchema) => {
-    const result = await createPlaylist(playlistData);
-    if (result) {
-      setIsCreateModalOpen(false);
-      // Recharger les données
-      fetchPlaylists();
-      fetchStatusCounts();
-    }
-  }, [createPlaylist, fetchPlaylists, fetchStatusCounts]);
-
-  // Gestionnaire de mise à jour
-  const handleUpdateSubmit = useCallback(async (playlistData: PlaylistSchema) => {
-    if (selectedPlaylist?.id) {
-      const result = await updatePlaylist(selectedPlaylist.id, playlistData);
-      if (result) {
-        setIsEditModalOpen(false);
-        clearSelection();
-        // Recharger les données
-        fetchPlaylists();
-        fetchStatusCounts();
-      }
-    }
-  }, [selectedPlaylist, updatePlaylist, clearSelection, fetchPlaylists, fetchStatusCounts]);
-
-  // Gestionnaire de suppression
-  const handleDeleteConfirm = useCallback(async () => {
-    if (selectedPlaylist?.id) {
-      const result = await deletePlaylist(selectedPlaylist.id);
-      if (result) {
-        setIsDeleteModalOpen(false);
-        clearSelection();
-        // Recharger les données
-        fetchPlaylists();
-        fetchStatusCounts();
-      }
-    }
-  }, [selectedPlaylist, deletePlaylist, clearSelection, fetchPlaylists, fetchStatusCounts]);
-
-  // Gestionnaire de double-clic sur le statut pour passer en WAITING
-  const handleStatusDoubleClick = useCallback(async (playlist: PlaylistSchema) => {
-    if (!playlist.id) {
-      addNotification({
-        type: 'error',
-        title: 'Error',
-        message: 'Cannot update playlist: Invalid ID',
-      });
-      return;
-    }
-
-    try {
-      // Créer les données de mise à jour avec seulement le statut modifié
-      const updatedPlaylistData: PlaylistSchema = {
-        ...playlist,
-        status: 'WAITING'
-      };
-
-      const result = await updatePlaylist(playlist.id, updatedPlaylistData);
-      
-      if (result) {
-        addNotification({
-          type: 'success',
-          title: 'Status Updated',
-          message: `Playlist "${playlist.name || playlist.id}" status changed to WAITING`,
-        });
-
-        // Recharger les données
-        fetchPlaylists();
-        fetchStatusCounts();
-      }
-    } catch (error) {
-      console.error('Failed to update playlist status:', error);
-      addNotification({
-        type: 'error',
-        title: 'Update Failed',
-        message: 'Failed to update playlist status. Please try again.',
-      });
-    }
-  }, [updatePlaylist, addNotification, fetchPlaylists, fetchStatusCounts]);
-
-  // Rafraîchir les données (sans cache)
+  // Refresh handler
   const handleRefresh = useCallback(() => {
     fetchPlaylists();
     fetchStatusCounts();
   }, [fetchPlaylists, fetchStatusCounts]);
 
-  const totalPages = Math.ceil(totalCount / pageSize);
+  // View handler
+  const handleView = useCallback((playlist: PlaylistSchema) => {
+    setSelectedPlaylist(playlist);
+    const viewMessage = `👁️ VIEW CLICKED!\n\nPlaylist: ${playlist.name || 'Unnamed'}\nID: ${playlist.id}\nDescription: ${playlist.description || 'No description'}\n\n(View modal not implemented yet)`;
+    alert(viewMessage);
+  }, [setSelectedPlaylist]);
+
+  // Status double-click to set WAITING
+  const handleStatusDoubleClick = useCallback(async (playlist: PlaylistSchema) => {
+    if (!playlist.id) return;
+
+    const updatedPlaylistData: PlaylistSchema = {
+      ...playlist,
+      status: 'WAITING'
+    };
+
+    const result = await updatePlaylist(playlist.id, updatedPlaylistData);
+    
+    if (result) {
+      addNotification({
+        type: 'success',
+        title: 'Status Updated',
+        message: `Playlist "${playlist.name || playlist.id}" status changed to WAITING`,
+      });
+      fetchPlaylists();
+      fetchStatusCounts();
+    }
+  }, [updatePlaylist, addNotification, fetchPlaylists, fetchStatusCounts]);
+
+  // Wrap CRUD operations with notifications
+  const handleCreatePlaylist = useCallback(async (data: Partial<PlaylistSchema>) => {
+    const newPlaylist = await createPlaylist(data as PlaylistSchema);
+    if (newPlaylist) {
+      addNotification({
+        type: 'success',
+        title: 'Playlist Created',
+        message: `Playlist "${newPlaylist.name}" has been created successfully.`,
+      });
+      fetchPlaylists();
+      fetchStatusCounts();
+    }
+    return newPlaylist;
+  }, [createPlaylist, addNotification, fetchPlaylists, fetchStatusCounts]);
+
+  const handleUpdatePlaylist = useCallback(async (id: number, data: Partial<PlaylistSchema>) => {
+    const updated = await updatePlaylist(id, data as PlaylistSchema);
+    if (updated) {
+      addNotification({
+        type: 'success',
+        title: 'Playlist Updated',
+        message: `Playlist "${updated.name}" has been updated successfully.`,
+      });
+      fetchPlaylists();
+      fetchStatusCounts();
+    }
+    return updated;
+  }, [updatePlaylist, addNotification, fetchPlaylists, fetchStatusCounts]);
+
+  const handleDeletePlaylist = useCallback(async (id: number) => {
+    const success = await deletePlaylist(id);
+    if (success) {
+      addNotification({
+        type: 'success',
+        title: 'Playlist Deleted',
+        message: 'Playlist has been deleted successfully.',
+      });
+      fetchPlaylists();
+      fetchStatusCounts();
+    }
+    return success;
+  }, [deletePlaylist, addNotification, fetchPlaylists, fetchStatusCounts]);
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gestion des Playlists</h1>
-            <p className="text-gray-600 mt-2">
-              {totalCount > 0 ? `${totalCount} playlist${totalCount > 1 ? 's' : ''} trouvée${totalCount > 1 ? 's' : ''}` : 'Aucune playlist trouvée'}
-            </p>
-          </div>
-          <Button
-            onClick={handleCreate}
-            disabled={loading || creating}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            {creating ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Création...
-              </>
-            ) : (
-              'Nouvelle Playlist'
-            )}
-          </Button>
-        </div>
-
-        {/* Affichage d'erreur */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
-            <span className="block sm:inline">{error}</span>
-            <button
-              onClick={clearError}
-              className="absolute top-0 bottom-0 right-0 px-4 py-3"
-            >
-              <span className="sr-only">Fermer</span>
-              ✕
-            </button>
-          </div>
-        )}
-
-        {/* Panel de filtres - lazy loaded */}
+    <BasePlaylistPage<PlaylistSchema, PlaylistQueryParams>
+      labels={labels}
+      formFields={playlistFormFields}
+      showCreateButton={true}
+      
+      // Data
+      playlists={playlists}
+      loading={loading}
+      error={error}
+      filters={filters}
+      currentPage={currentPage}
+      pageSize={pageSize}
+      totalCount={totalCount}
+      
+      // Actions
+      setCurrentPage={setCurrentPage}
+      setFilters={setFilters}
+      fetchPlaylists={fetchPlaylists}
+      createPlaylist={handleCreatePlaylist}
+      updatePlaylist={handleUpdatePlaylist}
+      deletePlaylist={handleDeletePlaylist}
+      
+      // Helpers
+      getPlaylistId={(p) => p.id ?? undefined}
+      getPlaylistName={(p) => p.name || p.channel_name || `Playlist #${p.id}`}
+      playlistToFormData={playlistToFormData}
+      formDataToPlaylist={formDataToPlaylist}
+      getInitialFormData={getInitialFormData}
+      
+      // Callbacks
+      onStatusDoubleClick={handleStatusDoubleClick}
+      onRowClick={setSelectedPlaylist}
+      onView={handleView}
+      
+      // Debug
+      showDebugInfo={true}
+      debugData={{
+        'Total playlists': totalCount,
+        'Current page': `${currentPage} / ${Math.ceil(totalCount / pageSize)}`,
+        'Filters': filters,
+        'Status counts': statusCounts,
+        'Selected playlist': selectedPlaylist?.name || selectedPlaylist?.id || 'None',
+      }}
+      
+      // Render props
+      renderFilterPanel={() => (
         <LazyPlaylistFilterPanel
           entityType="playlists"
           filters={filters}
           statusCounts={statusCounts}
-          sortOptions={playlistFilterConfig.sortOptions}
+          sortOptions={sortOptions}
           onFiltersChange={handleFiltersChange}
           onRefresh={handleRefresh}
           loading={loading}
           totalCount={totalCount}
         />
-
-        {/* Table des playlists - lazy loaded */}
-        <ErrorBoundary
-          fallback={(error, reset) => (
-            <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <h3 className="text-red-800 dark:text-red-200 font-medium mb-2">
-                Échec du chargement des playlists
-              </h3>
-              <p className="text-red-600 dark:text-red-400 text-sm mb-4">
-                {error.message}
-              </p>
-              <Button onClick={reset} variant="secondary">
-                Réessayer
-              </Button>
-            </div>
-          )}
-        >
-          {/* Contrôles de pagination (haut) */}
-          {totalPages > 1 && (
-            <div className="flex justify-center">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalRecords={totalCount}
-                pageSize={pageSize}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
-
-          {/* Table des playlists */}
-          {loading ? (
-            <TableSkeleton rows={10} columns={6} />
-          ) : (
-            <LazyPlaylistTable
-              playlists={playlists}
-              loading={loading}
-              onView={handleView}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onRowClick={(playlist) => setSelectedPlaylist(playlist)}
-              onStatusDoubleClick={handleStatusDoubleClick}
-            />
-          )}
-
-            {/* Contrôles de pagination (bas) */}
-          {totalPages > 1 && (
-            <div className="flex justify-center">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalRecords={totalCount}
-                pageSize={pageSize}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
-        </ErrorBoundary>
-
-        {/* TODO: Modals pour création, édition et suppression */}
-        {/* Ces modals peuvent être ajoutés plus tard */}
-        
-        {/* Debug info (à supprimer en production) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-8 p-4 bg-gray-100 rounded text-sm">
-            <h3 className="font-semibold mb-2">Debug Info:</h3>
-            <p>Total playlists: {totalCount}</p>
-            <p>Current page: {currentPage} / {totalPages}</p>
-            <p>Filters: {JSON.stringify(filters)}</p>
-            <p>Status counts: {JSON.stringify(statusCounts)}</p>
-            {selectedPlaylist && (
-              <p>Selected playlist: {selectedPlaylist.name || selectedPlaylist.id}</p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Edit Modal */}
-      <Modal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setEditingPlaylist(null);
-          resetForm();
-        }}
-        title="Edit Playlist"
-        size="lg"
-      >
-        <div className="space-y-4">
-          <FormInput
-            label="Name"
-            value={formData.name}
-            onChange={(e) => handleFormChange('name', e.target.value)}
-            required
-          />
-
-          <FormTextarea
-            label="Description"
-            value={formData.description}
-            onChange={(e) => handleFormChange('description', e.target.value)}
-            rows={3}
-            placeholder="Optional description..."
-          />
-
-          <FormInput
-            label="URL"
-            value={formData.url}
-            onChange={(e) => handleFormChange('url', e.target.value)}
-            placeholder="https://www.youtube.com/playlist?list=..."
-          />
-
-          <FormInput
-            label="Topic"
-            value={formData.topic}
-            onChange={(e) => handleFormChange('topic', e.target.value)}
-            placeholder="e.g. music, tech, education..."
-          />
-
-          <FormSelect
-            label="Resolution"
-            value={formData.resolution}
-            onChange={(e) => handleFormChange('resolution', e.target.value)}
-          >
-            <option value="">Select resolution</option>
-            {resolutionOptions.map((resolution) => (
-              <option key={resolution.value} value={resolution.value}>
-                {resolution.label}
-              </option>
-            ))}
-          </FormSelect>
-
-          <FormSelect
-            label="Status"
-            value={formData.status}
-            onChange={(e) => handleFormChange('status', e.target.value)}
-          >
-            <option value="">Select status</option>
-            {playlistStatusOptions.map((status) => (
-              <option key={status.value} value={status.value}>
-                {status.label}
-              </option>
-            ))}
-          </FormSelect>
-        </div>
-
-        <div className="flex justify-end space-x-3 mt-6">
-          <Button
-            variant="outline"
-            onClick={() => {
-              setIsEditModalOpen(false);
-              setEditingPlaylist(null);
-              resetForm();
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleEditPlaylist}
-            disabled={formLoading || !formData.name}
-          >
-            {formLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Updating...
-              </>
-            ) : (
-              'Update Playlist'
-            )}
-          </Button>
-        </div>
-      </Modal>
-    </Layout>
+      )}
+      renderTable={(props) => (
+        <LazyPlaylistTable
+          playlists={props.playlists}
+          loading={props.loading}
+          onView={props.onView}
+          onEdit={props.onEdit}
+          onDelete={props.onDelete}
+          onRowClick={props.onRowClick}
+          onStatusDoubleClick={props.onStatusDoubleClick}
+        />
+      )}
+    />
   );
-};
-
-export default PlaylistsPage;
+}
