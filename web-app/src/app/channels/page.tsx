@@ -1,36 +1,28 @@
 'use client';
 
-import React, { Suspense, useState, useCallback, useMemo } from 'react';
-import { PlusIcon } from '@heroicons/react/24/outline';
-import { Layout } from '@/components/layout/Layout';
+import React from 'react';
 import { LazyChannelTable } from '@/components/tables';
 import { LazyChannelFilterPanel } from '@/components/filters';
-import { 
-  Button, 
-  LazyModal as Modal, 
-  Pagination,
-  TableSkeleton,
-  FilterSkeleton,
-  ErrorBoundary,
-  LoadingSpinner,
-} from '@/components/ui';
-import { FormInput, FormTextarea } from '@/components/ui/form';
+import { BaseChannelPage, FormFieldConfig, BaseChannelPageLabels } from '@/components/pages';
 import { useChannelStore, useUIStore } from '@/stores';
 import { ChannelSchema } from '@/types/api';
 import { useInitialLoad, useFilteredLoad } from '@/lib/hooks';
 
-interface ChannelFormData {
-  name: string;
-  description: string;
-  url: string;
-  uploader: string;
-  resolution: string;
-  status: string;
-  max_videos: number;
-  refresh_interval_days: number;
-}
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
 
-// Status options for channels
+const channelFormFields: FormFieldConfig[] = [
+  { name: 'name', label: 'Channel Name', type: 'text', required: true },
+  { name: 'uploader', label: 'Uploader', type: 'text' },
+  { name: 'resolution', label: 'Resolution', type: 'text', placeholder: 'e.g., 1080p, 720p, 4K' },
+  { name: 'description', label: 'Description', type: 'textarea' },
+  { name: 'url', label: 'Channel URL', type: 'url', required: true },
+  { name: 'status', label: 'Status', type: 'select' },
+  { name: 'max_videos', label: 'Max Videos', type: 'number', min: 1, gridSpan: 2 },
+  { name: 'refresh_interval_days', label: 'Refresh Interval (days)', type: 'number', min: 1, gridSpan: 2 },
+];
+
 const channelStatusOptions = [
   { value: '', label: 'Select status' },
   { value: 'PENDING', label: 'Pending' },
@@ -40,6 +32,65 @@ const channelStatusOptions = [
   { value: 'FAILED', label: 'Failed' },
 ];
 
+const labels: BaseChannelPageLabels = {
+  pageTitle: 'Channel Management',
+  pageSubtitle: 'Manage and organize your channel sources',
+  createButton: 'Add Channel',
+  createModalTitle: 'Create New Channel',
+  editModalTitle: 'Edit Channel',
+  cancelButton: 'Cancel',
+  createSubmitButton: 'Create Channel',
+  editSubmitButton: 'Update Channel',
+  loadingError: 'Failed to load channels',
+  retryButton: 'Try again',
+  deleteConfirm: (name: string) => `Are you sure you want to delete "${name}"?`,
+};
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+const getInitialFormData = () => ({
+  name: '',
+  description: '',
+  url: '',
+  uploader: '',
+  resolution: '',
+  status: '',
+  max_videos: 100,
+  refresh_interval_days: 7,
+});
+
+const channelToFormData = (channel: ChannelSchema): Record<string, unknown> => ({
+  name: channel.name || '',
+  description: channel.description || '',
+  url: channel.url || '',
+  uploader: channel.uploader || '',
+  resolution: channel.resolution || '',
+  status: channel.status || '',
+  max_videos: channel.max_videos || 100,
+  refresh_interval_days: channel.refresh_interval_days || 7,
+});
+
+const formDataToChannel = (
+  formData: Record<string, unknown>, 
+  existingChannel?: ChannelSchema
+): Partial<ChannelSchema> => ({
+  ...(existingChannel || {}),
+  name: formData.name as string,
+  description: (formData.description as string) || null,
+  url: formData.url as string,
+  uploader: (formData.uploader as string) || null,
+  resolution: (formData.resolution as string) || null,
+  status: (formData.status as string) || null,
+  max_videos: (formData.max_videos as number) || null,
+  refresh_interval_days: (formData.refresh_interval_days as number) || null,
+});
+
+// ============================================================================
+// PAGE COMPONENT
+// ============================================================================
+
 export default function ChannelsPage() {
   const { 
     channels, 
@@ -48,7 +99,6 @@ export default function ChannelsPage() {
     currentPage,
     pageSize,
     totalCount,
-    statusCounts,
     fetchChannels, 
     setFilters,
     setCurrentPage,
@@ -61,134 +111,50 @@ export default function ChannelsPage() {
   
   const { addNotification } = useUIStore();
 
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingChannel, setEditingChannel] = useState<ChannelSchema | null>(null);
-  const [formData, setFormData] = useState<ChannelFormData>({
-    name: '',
-    description: '',
-    url: '',
-    uploader: '',
-    resolution: '',
-    status: '',
-    max_videos: 100,
-    refresh_interval_days: 7,
-  });
-  const [formLoading, setFormLoading] = useState(false);
-
-  // Chargement initial une seule fois (requêtes en parallèle)
+  // Initial load
   useInitialLoad([
     () => fetchChannels(),
     () => fetchStatusCounts(),
   ]);
 
-  // Re-fetch seulement quand les filtres changent (skip le premier render)
+  // Re-fetch when filters change
   useFilteredLoad(filters, [
-    (f) => fetchChannels(),
-    (f) => fetchStatusCounts(f),
+    () => fetchChannels(),
+    () => fetchStatusCounts(filters),
   ], { skipInitial: true });
 
-  const handleCreateChannel = async () => {
-    setFormLoading(true);
-    try {
-      const channelData: ChannelSchema = {
-        name: formData.name,
-        description: formData.description || null,
-        url: formData.url,
-        uploader: formData.uploader || null,
-        resolution: formData.resolution || null,
-        status: formData.status || null,
-        max_videos: formData.max_videos || null,
-        refresh_interval_days: formData.refresh_interval_days || null,
-      };
-
-      const newChannel = await createChannel(channelData);
-      
-      if (newChannel) {
-        setShowCreateModal(false);
-        setFormData({
-          name: '',
-          description: '',
-          url: '',
-          uploader: '',
-          resolution: '',
-          status: '',
-          max_videos: 100,
-          refresh_interval_days: 7,
-        });
-
-        addNotification({
-          type: 'success',
-          title: 'Channel Created',
-          message: `Channel "${newChannel.name}" has been created successfully.`,
-        });
-      }
-    } catch (error) {
-      console.error('Failed to create channel:', error);
+  // Wrap CRUD operations with notifications
+  const handleCreateChannel = async (data: Partial<ChannelSchema>) => {
+    const newChannel = await createChannel(data as ChannelSchema);
+    if (newChannel) {
       addNotification({
-        type: 'error',
-        title: 'Creation Failed',
-        message: 'Failed to create the channel. Please try again.',
+        type: 'success',
+        title: 'Channel Created',
+        message: `Channel "${newChannel.name}" has been created successfully.`,
       });
-    } finally {
-      setFormLoading(false);
     }
+    return newChannel;
   };
 
-  const handleEditChannel = async () => {
-    if (!editingChannel?.id) return;
-
-    setFormLoading(true);
-    try {
-      // Create complete channel data object with all required fields
-      const channelData: ChannelSchema = {
-        ...editingChannel, // Start with existing channel data
-        // Override with form data
-        name: formData.name,
-        description: formData.description || null,
-        url: formData.url,
-        uploader: formData.uploader || null,
-        resolution: formData.resolution || null,
-        status: formData.status || null,
-        max_videos: formData.max_videos || null,
-        refresh_interval_days: formData.refresh_interval_days || null,
-      };
-
-      const updatedChannel = await updateChannel(editingChannel.id, channelData);
-      
-      if (updatedChannel) {
-        setShowEditModal(false);
-        setEditingChannel(null);
-
-        addNotification({
-          type: 'success',
-          title: 'Channel Updated',
-          message: `Channel "${updatedChannel.name}" has been updated successfully.`,
-        });
-      }
-    } catch (error) {
-      console.error('Failed to update channel:', error);
+  const handleUpdateChannel = async (id: number, data: Partial<ChannelSchema>) => {
+    const updated = await updateChannel(id, data as ChannelSchema);
+    if (updated) {
       addNotification({
-        type: 'error',
-        title: 'Update Failed',
-        message: 'Failed to update the channel. Please try again.',
+        type: 'success',
+        title: 'Channel Updated',
+        message: `Channel "${updated.name}" has been updated successfully.`,
       });
-    } finally {
-      setFormLoading(false);
     }
+    return updated;
   };
 
-  const handleDeleteChannel = async (channel: ChannelSchema) => {
-    if (!channel.id) return;
-    if (!confirm(`Are you sure you want to delete "${channel.name || channel.uploader}"?`)) return;
-
-    const success = await deleteChannel(channel.id);
-    
+  const handleDeleteChannel = async (id: number) => {
+    const success = await deleteChannel(id);
     if (success) {
       addNotification({
         type: 'success',
         title: 'Channel Deleted',
-        message: `Channel "${channel.name || channel.uploader}" has been deleted successfully.`,
+        message: 'Channel has been deleted successfully.',
       });
     } else {
       addNotification({
@@ -197,335 +163,53 @@ export default function ChannelsPage() {
         message: 'Failed to delete the channel. Please try again.',
       });
     }
+    return success;
   };
-
-  const openCreateModal = () => {
-    setFormData({
-      name: '',
-      description: '',
-      url: '',
-      uploader: '',
-      resolution: '',
-      status: '',
-      max_videos: 100,
-      refresh_interval_days: 7,
-    });
-    setShowCreateModal(true);
-  };
-
-  const openEditModal = (channel: ChannelSchema) => {
-    setEditingChannel(channel);
-    setFormData({
-      name: channel.name || '',
-      description: channel.description || '',
-      url: channel.url || '',
-      uploader: channel.uploader || '',
-      resolution: channel.resolution || '',
-      status: channel.status || '',
-      max_videos: channel.max_videos || 100,
-      refresh_interval_days: channel.refresh_interval_days || 7,
-    });
-    setShowEditModal(true);
-  };
-
-  const handleFormChange = (field: keyof ChannelFormData, value: string | number) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleSort = (key: string, direction: 'asc' | 'desc') => {
-    const newFilters = {
-      ...filters,
-      sort_by: key,
-      sort_order: direction,
-    };
-    setFilters(newFilters);
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handlePageSizeChange = (size: number) => {
-    // Update page size in store (this will automatically trigger pagination update)
-    setPageSize(size);
-    
-    // Update filters with new limit
-    const newFilters = {
-      ...filters,
-      limit: size,
-    };
-    setFilters(newFilters);
-  };
-
-  const handleRefresh = () => {
-    // Refresh all data
-    fetchChannels(filters);
-    fetchStatusCounts(filters);
-  };
-
-  const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <Layout>
-      <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Channel Management
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Manage and organize your channel sources
-            </p>
-          </div>
-          <Button onClick={openCreateModal} className="flex items-center space-x-2">
-            <PlusIcon className="h-5 w-5" />
-            <span>Add Channel</span>
-          </Button>
-        </div>
-
-        {/* Filters - lazy loaded */}
-        <div className="mb-6">
-          <LazyChannelFilterPanel />
-        </div>
-
-        {/* Channel Table - lazy loaded */}
-        <ErrorBoundary
-          fallback={(error, reset) => (
-            <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <h3 className="text-red-800 dark:text-red-200 font-medium mb-2">
-                Failed to load channels
-              </h3>
-              <p className="text-red-600 dark:text-red-400 text-sm mb-4">
-                {error.message}
-              </p>
-              <Button onClick={reset} variant="secondary">
-                Try again
-              </Button>
-            </div>
-          )}
-        >
-          {loading ? (
-            <TableSkeleton rows={10} columns={6} />
-          ) : (
-            <>
-              {/* Top Pagination */}
-              {totalPages > 1 && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalRecords={totalCount}
-                  pageSize={pageSize}
-                  onPageChange={handlePageChange}
-                  onPageSizeChange={handlePageSizeChange}
-                  className="mb-4"
-                />
-              )}
-              
-              <LazyChannelTable
-                channels={channels}
-                loading={loading}
-                onSort={handleSort}
-                sortKey={filters.sort_by}
-                sortDirection={filters.sort_order}
-                onEdit={openEditModal}
-                onDelete={handleDeleteChannel}
-              />
-
-              {/* Bottom Pagination */}
-              {totalPages > 1 && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalRecords={totalCount}
-                  pageSize={pageSize}
-                  onPageChange={handlePageChange}
-                  onPageSizeChange={handlePageSizeChange}
-                  className="mt-4"
-                />
-              )}
-            </>
-          )}
-        </ErrorBoundary>
-
-        {/* Create Modal */}
-        <Modal
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          title="Create New Channel"
-          size="lg"
-        >
-          <div className="space-y-4">
-            <FormInput
-              label="Channel Name"
-              value={formData.name}
-              onChange={(e) => handleFormChange('name', e.target.value)}
-              required
-            />
-
-            <FormInput
-              label="Uploader"
-              value={formData.uploader}
-              onChange={(e) => handleFormChange('uploader', e.target.value)}
-            />
-
-            <FormInput
-              label="Resolution"
-              value={formData.resolution}
-              onChange={(e) => handleFormChange('resolution', e.target.value)}
-              placeholder="e.g., 1080p, 720p, 4K"
-            />
-
-            <FormTextarea
-              label="Description"
-              value={formData.description}
-              onChange={(e) => handleFormChange('description', e.target.value)}
-              rows={3}
-            />
-
-            <FormInput
-              label="Channel URL"
-              type="url"
-              value={formData.url}
-              onChange={(e) => handleFormChange('url', e.target.value)}
-              required
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormInput
-                label="Max Videos"
-                type="number"
-                value={formData.max_videos}
-                onChange={(e) => handleFormChange('max_videos', parseInt(e.target.value) || 100)}
-                min="1"
-              />
-
-              <FormInput
-                label="Refresh Interval (days)"
-                type="number"
-                value={formData.refresh_interval_days}
-                onChange={(e) => handleFormChange('refresh_interval_days', parseInt(e.target.value) || 7)}
-                min="1"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-3 mt-6">
-            <Button
-              variant="outline"
-              onClick={() => setShowCreateModal(false)}
-              disabled={formLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreateChannel}
-              disabled={formLoading || !formData.name || !formData.url}
-            >
-              {formLoading ? <LoadingSpinner size="sm" /> : 'Create Channel'}
-            </Button>
-          </div>
-        </Modal>
-
-        {/* Edit Modal */}
-        <Modal
-          isOpen={showEditModal}
-          onClose={() => setShowEditModal(false)}
-          title="Edit Channel"
-          size="lg"
-        >
-          <div className="space-y-4">
-            <FormInput
-              label="Channel Name"
-              value={formData.name}
-              onChange={(e) => handleFormChange('name', e.target.value)}
-              required
-            />
-
-            <FormInput
-              label="Uploader"
-              value={formData.uploader}
-              onChange={(e) => handleFormChange('uploader', e.target.value)}
-            />
-
-            <FormInput
-              label="Resolution"
-              value={formData.resolution}
-              onChange={(e) => handleFormChange('resolution', e.target.value)}
-              placeholder="e.g., 1080p, 720p, 4K"
-            />
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) => handleFormChange('status', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                {channelStatusOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <FormTextarea
-              label="Description"
-              value={formData.description}
-              onChange={(e) => handleFormChange('description', e.target.value)}
-              rows={3}
-            />
-
-            <FormInput
-              label="Channel URL"
-              type="url"
-              value={formData.url}
-              onChange={(e) => handleFormChange('url', e.target.value)}
-              required
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormInput
-                label="Max Videos"
-                type="number"
-                value={formData.max_videos}
-                onChange={(e) => handleFormChange('max_videos', parseInt(e.target.value) || 100)}
-                min="1"
-              />
-
-              <FormInput
-                label="Refresh Interval (days)"
-                type="number"
-                value={formData.refresh_interval_days}
-                onChange={(e) => handleFormChange('refresh_interval_days', parseInt(e.target.value) || 7)}
-                min="1"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-3 mt-6">
-            <Button
-              variant="outline"
-              onClick={() => setShowEditModal(false)}
-              disabled={formLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleEditChannel}
-              disabled={formLoading || !formData.name || !formData.url}
-            >
-              {formLoading ? <LoadingSpinner size="sm" /> : 'Update Channel'}
-            </Button>
-          </div>
-        </Modal>
-      </div>
-    </Layout>
+    <BaseChannelPage<ChannelSchema, typeof filters>
+      labels={labels}
+      formFields={channelFormFields}
+      statusOptions={channelStatusOptions}
+      showCreateButton={true}
+      
+      // Data
+      channels={channels}
+      loading={loading}
+      filters={filters}
+      currentPage={currentPage}
+      pageSize={pageSize}
+      totalCount={totalCount}
+      
+      // Actions
+      setCurrentPage={setCurrentPage}
+      setPageSize={setPageSize}
+      setFilters={setFilters}
+      fetchChannels={fetchChannels}
+      createChannel={handleCreateChannel}
+      updateChannel={handleUpdateChannel}
+      deleteChannel={handleDeleteChannel}
+      
+      // Helpers
+      getChannelId={(c) => c.id ?? undefined}
+      getChannelName={(c) => c.name || c.uploader || 'Unknown'}
+      channelToFormData={channelToFormData}
+      formDataToChannel={formDataToChannel}
+      getInitialFormData={getInitialFormData}
+      
+      // Render props
+      renderFilterPanel={() => <LazyChannelFilterPanel />}
+      renderTable={(props) => (
+        <LazyChannelTable
+          channels={props.channels}
+          loading={props.loading}
+          onSort={props.onSort}
+          sortKey={props.sortKey}
+          sortDirection={props.sortDirection}
+          onEdit={props.onEdit}
+          onDelete={props.onDelete}
+        />
+      )}
+    />
   );
 }
