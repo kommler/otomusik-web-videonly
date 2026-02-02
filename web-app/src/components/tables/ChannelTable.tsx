@@ -1,17 +1,26 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TvIcon, UsersIcon, PlayIcon, EyeIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { ChannelSchema } from '@/types/api';
+import { DataTable } from '@/components/ui/data-table';
 import { StatusBadge } from '../ui';
 import { formatNumber, formatRelativeDate } from '@/lib/utils';
-import {
-  createTableComponent,
-  createNumberColumn,
-  ColumnDef,
-} from './BaseTable';
+import { ColumnDef } from './BaseTable';
 
 // ============================================================================
 // Custom Columns
 // ============================================================================
+
+const createIdColumn = (): ColumnDef<ChannelSchema> => ({
+  key: 'id',
+  title: 'ID',
+  sortable: true,
+  width: '80px',
+  render: (id: unknown) => (
+    <span className="text-sm font-mono text-gray-700 dark:text-gray-300">
+      {(id as number) || '-'}
+    </span>
+  ),
+});
 
 const createChannelNameColumn = (): ColumnDef<ChannelSchema> => ({
   key: 'name',
@@ -109,13 +118,18 @@ const createViewCountColumn = (): ColumnDef<ChannelSchema> => ({
   ),
 });
 
-const createChannelStatusColumn = (): ColumnDef<ChannelSchema> => ({
+const createChannelStatusColumn = (
+  onStatusDoubleClick?: (channel: ChannelSchema) => void
+): ColumnDef<ChannelSchema> => ({
   key: 'status',
   title: 'Status',
   sortable: true,
   width: '120px',
-  render: (status: unknown) => (
-    <StatusBadge status={(status as string) || 'UNKNOWN'} />
+  render: (status: unknown, channel: ChannelSchema) => (
+    <StatusBadge 
+      status={(status as string) || 'UNKNOWN'} 
+      onDoubleClick={onStatusDoubleClick ? () => onStatusDoubleClick(channel) : undefined}
+    />
   ),
 });
 
@@ -153,29 +167,19 @@ const createRefreshedAtColumn = (): ColumnDef<ChannelSchema> => ({
   },
 });
 
-// ============================================================================
-// Table Component using Factory
-// ============================================================================
-
-const BaseChannelTable = createTableComponent<ChannelSchema>({
-  columns: [
-    createChannelNameColumn(),
-    createTopicColumn(),
-    createResolutionColumn(),
-    createVideoCountColumn(),
-    createSubscriberColumn(),
-    createViewCountColumn(),
-    createChannelStatusColumn(),
-    createRefreshIntervalColumn(),
-    createRefreshedAtColumn(),
-  ],
-  includeId: true,
-  includeStatus: false, // Using custom status column
-  includeUrl: false,
-  includeCreatedAt: false,
-  includeUpdatedAt: true,
-  includeDownloadedAt: false,
-  emptyMessage: 'No channels found. Try adjusting your search or filters.',
+const createUpdatedAtColumn = (): ColumnDef<ChannelSchema> => ({
+  key: 'updated_at',
+  title: 'Updated',
+  sortable: true,
+  width: '120px',
+  render: (updatedAt: unknown) => {
+    const dateStr = updatedAt as string | null;
+    return (
+      <span className="text-sm text-gray-500 dark:text-gray-400">
+        {formatRelativeDate(dateStr)}
+      </span>
+    );
+  },
 });
 
 // ============================================================================
@@ -191,12 +195,50 @@ interface ChannelTableProps {
   onView?: (channel: ChannelSchema) => void;
   onEdit?: (channel: ChannelSchema) => void;
   onDelete?: (channel: ChannelSchema) => void;
+  onStatusDoubleClick?: (channel: ChannelSchema) => void;
   onRowClick?: (channel: ChannelSchema) => void;
 }
 
 export const ChannelTable: React.FC<ChannelTableProps> = ({
   channels,
-  ...props
-}) => (
-  <BaseChannelTable data={channels} {...props} />
-);
+  loading,
+  onSort,
+  sortKey,
+  sortDirection,
+  onView,
+  onEdit,
+  onDelete,
+  onStatusDoubleClick,
+  onRowClick,
+}) => {
+  const columns = useMemo(() => [
+    createIdColumn(),
+    createChannelNameColumn(),
+    createTopicColumn(),
+    createResolutionColumn(),
+    createVideoCountColumn(),
+    createSubscriberColumn(),
+    createViewCountColumn(),
+    createChannelStatusColumn(onStatusDoubleClick),
+    createRefreshIntervalColumn(),
+    createRefreshedAtColumn(),
+    createUpdatedAtColumn(),
+  ], [onStatusDoubleClick]);
+
+  return (
+    <DataTable
+      data={channels}
+      columns={columns}
+      loading={loading}
+      onSort={onSort}
+      sortKey={sortKey}
+      sortDirection={sortDirection}
+      onRowClick={onRowClick}
+      onView={onView}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      showActions={!!(onView || onEdit || onDelete)}
+      emptyMessage="No channels found. Try adjusting your search or filters."
+    />
+  );
+};

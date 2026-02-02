@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { LazyChannelTable } from '@/components/tables';
 import { LazyChannelFilterPanel } from '@/components/filters';
 import { BaseChannelPage, FormFieldConfig, BaseChannelPageLabels } from '@/components/pages';
@@ -28,6 +28,7 @@ const channelStatusOptions = [
   { value: 'PENDING', label: 'Pending' },
   { value: 'SCRAPING', label: 'Scraping' },
   { value: 'DOWNLOADED', label: 'Downloaded' },
+  { value: 'WAITING', label: 'Waiting' },
   { value: 'ERROR', label: 'Error' },
   { value: 'FAILED', label: 'Failed' },
 ];
@@ -148,6 +149,38 @@ export default function ChannelsPage() {
     return updated;
   };
 
+  // Double-click on status: DOWNLOADED ↔ WAITING
+  const handleStatusDoubleClick = useCallback(async (channel: ChannelSchema) => {
+    if (!channel.id) return;
+    
+    const currentStatus = channel.status?.toUpperCase();
+    
+    if (currentStatus === 'DOWNLOADED') {
+      // DOWNLOADED → WAITING : no confirmation
+      const updated = await updateChannel(channel.id, { ...channel, status: 'WAITING' });
+      if (updated) {
+        addNotification({
+          type: 'success',
+          title: 'Status Updated',
+          message: `Channel "${channel.name}" status changed to WAITING.`,
+        });
+      }
+    } else if (currentStatus === 'WAITING') {
+      // WAITING → DOWNLOADED : with confirmation
+      if (confirm(`Set channel "${channel.name}" status back to DOWNLOADED?`)) {
+        const updated = await updateChannel(channel.id, { ...channel, status: 'DOWNLOADED' });
+        if (updated) {
+          addNotification({
+            type: 'success',
+            title: 'Status Updated',
+            message: `Channel "${channel.name}" status changed to DOWNLOADED.`,
+          });
+        }
+      }
+    }
+    // Other statuses: do nothing
+  }, [updateChannel, addNotification]);
+
   const handleDeleteChannel = async (id: number) => {
     const success = await deleteChannel(id);
     if (success) {
@@ -189,6 +222,7 @@ export default function ChannelsPage() {
       createChannel={handleCreateChannel}
       updateChannel={handleUpdateChannel}
       deleteChannel={handleDeleteChannel}
+      onStatusDoubleClick={handleStatusDoubleClick}
       
       // Helpers
       getChannelId={(c) => c.id ?? undefined}
@@ -208,6 +242,7 @@ export default function ChannelsPage() {
           sortDirection={props.sortDirection}
           onEdit={props.onEdit}
           onDelete={props.onDelete}
+          onStatusDoubleClick={props.onStatusDoubleClick}
         />
       )}
     />
