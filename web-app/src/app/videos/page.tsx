@@ -122,6 +122,7 @@ export default function VideosPage() {
     setPageSize,
     fetchStatusCounts,
     updateVideo,
+    patchVideo,
     deleteVideo,
     createVideo
   } = useVideoStore();
@@ -173,28 +174,23 @@ export default function VideosPage() {
     }
   }, [updateVideo, addNotification]);
 
-  // Status double-click to set PENDING and reset downloaded_at
+  // Status double-click to set PENDING (API will auto-reset extraction fields if video_name is empty)
   const handleStatusDoubleClick = useCallback(async (video: VideoSchema) => {
     if (!video.id) return;
 
-    const updatedVideoData: VideoSchema = {
-      ...video,
-      status: 'PENDING',
-      downloaded_at: null,
-    };
-
-    const result = await updateVideo(video.id, updatedVideoData);
+    // Use patchVideo to send only status - API will reset extraction fields if needed
+    const result = await patchVideo(video.id, { status: 'PENDING' });
     
     if (result) {
       addNotification({
         type: 'success',
         title: 'Status Updated',
-        message: `Video "${video.title || video.video_name || video.id}" status changed to PENDING and download date reset`,
+        message: `Video "${video.title || video.video_name || video.id}" status changed to PENDING`,
       });
       fetchVideos(filters);
       fetchStatusCounts(filters);
     }
-  }, [updateVideo, addNotification, fetchVideos, fetchStatusCounts, filters]);
+  }, [patchVideo, addNotification, fetchVideos, fetchStatusCounts, filters]);
 
   // CRUD with notifications
   const handleCreateVideo = useCallback(async (data: Partial<VideoSchema>) => {
