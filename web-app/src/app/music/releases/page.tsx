@@ -138,7 +138,7 @@ export default function MusicReleasesPage() {
     fetchStatusCounts(filters);
   }, [fetchReleases, fetchStatusCounts, filters]);
 
-  // Status double-click handler (FAILED -> PENDING, DOWNLOADED -> WAITING)
+  // Status double-click handler (FAILED -> PENDING, DOWNLOADED -> WAITING, WAITING -> DOWNLOADED)
   const handleStatusDoubleClick = useCallback(async (release: ReleaseSchema) => {
     if (!release.id) return;
     
@@ -151,6 +151,9 @@ export default function MusicReleasesPage() {
     } else if (release.status === 'DOWNLOADED') {
       newStatus = 'WAITING';
       fromStatus = 'DOWNLOADED';
+    } else if (release.status === 'WAITING') {
+      newStatus = 'DOWNLOADED';
+      fromStatus = 'WAITING';
     } else {
       return;
     }

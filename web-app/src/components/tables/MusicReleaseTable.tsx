@@ -31,7 +31,8 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   const errorMessage = formatErrorMessage(errors);
   const isFailed = status?.toLowerCase() === 'failed';
   const isDownloaded = status?.toLowerCase() === 'downloaded';
-  const isClickable = (isFailed || isDownloaded) && release && onStatusDoubleClick;
+  const isWaiting = status?.toLowerCase() === 'waiting';
+  const isClickable = (isFailed || isDownloaded || isWaiting) && release && onStatusDoubleClick;
 
   const handleDoubleClick = () => {
     if (isClickable && release) onStatusDoubleClick(release);
@@ -41,6 +42,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
     if (!onStatusDoubleClick) return undefined;
     if (isFailed) return 'Double-cliquez pour passer le statut en PENDING';
     if (isDownloaded) return 'Double-cliquez pour passer le statut en WAITING';
+    if (isWaiting) return 'Double-cliquez pour passer le statut en DOWNLOADED';
     return undefined;
   };
 
