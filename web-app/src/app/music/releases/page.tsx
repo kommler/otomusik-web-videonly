@@ -6,6 +6,7 @@ import { LazyMusicReleaseFilterPanel } from '@/components/filters';
 import { BasePlaylistPage, PlaylistFormFieldConfig, BasePlaylistPageLabels, PlaylistChannelOption } from '@/components/pages';
 import { useMusicReleaseStore, useMusicChannelStore, useUIStore } from '@/stores';
 import { ReleaseSchema, MusicReleaseQueryParams } from '@/types/api';
+import { apiCache } from '@/lib/api/cache';
 
 // ============================================================================
 // CONFIGURATION
@@ -134,6 +135,7 @@ export default function MusicReleasesPage() {
 
   // Refresh handler
   const handleRefresh = useCallback(() => {
+    apiCache.invalidate('/api/music/releases');
     fetchReleases(filters);
     fetchStatusCounts(filters);
   }, [fetchReleases, fetchStatusCounts, filters]);
