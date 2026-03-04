@@ -14,6 +14,8 @@ const VIDEO_SORT_OPTIONS: SortOption[] = [
   { value: 'published_at', label: 'Date de publication' },
 ];
 
+const ALL_STATUSES = ['PENDING', 'DOWNLOADING', 'DOWNLOADED', 'EXTRACTING', 'FAILED', 'ERROR', 'SKIP'];
+
 interface VideoFilterPanelProps {
   className?: string;
   onRefresh?: () => void;
@@ -53,6 +55,7 @@ export function VideoFilterPanel({ className, onRefresh }: VideoFilterPanelProps
       onFiltersChange={handleFiltersChange}
       onRefresh={handleRefresh}
       onBulkStatusChange={handleBulkStatusChange}
+      availableStatuses={ALL_STATUSES}
       loading={loading}
       totalCount={totalCount}
       className={className}

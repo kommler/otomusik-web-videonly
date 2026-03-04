@@ -33,6 +33,8 @@ export interface BaseFilterPanelProps<Q extends Record<string, unknown>> {
   onRefresh?: () => void;
   /** Callback pour changer le statut de tous les éléments filtrés */
   onBulkStatusChange?: (fromStatus: string, toStatus: string) => Promise<void>;
+  /** Tous les statuts possibles pour l'entité (même ceux sans éléments) */
+  availableStatuses?: string[];
   /** État de chargement */
   loading?: boolean;
   /** Nombre total d'éléments */
@@ -55,6 +57,7 @@ export function BaseFilterPanel<Q extends Record<string, unknown>>({
   onFiltersChange,
   onRefresh,
   onBulkStatusChange,
+  availableStatuses,
   loading = false,
   totalCount = 0,
   className,
@@ -132,6 +135,13 @@ export function BaseFilterPanel<Q extends Record<string, unknown>>({
   useEffect(() => {
     setTargetStatus('');
   }, [activeStatusFilters.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Tous les statuts disponibles pour le select cible (union des statuts connus + ceux depuis les données)
+  const allTargetStatuses = useMemo(() => {
+    const fromData = Object.keys(statusCounts);
+    const fromDef = availableStatuses ?? [];
+    return Array.from(new Set([...fromDef, ...fromData])).sort();
+  }, [statusCounts, availableStatuses]);
 
   // Appliquer le changement de statut en masse
   const handleBulkStatusChange = useCallback(async () => {
@@ -255,11 +265,12 @@ export function BaseFilterPanel<Q extends Record<string, unknown>>({
             className="px-2 py-1 text-sm border border-amber-300 dark:border-amber-600 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 bg-white dark:bg-gray-700 dark:text-white disabled:opacity-50"
           >
             <option value="">— choisir —</option>
-            {Object.keys(statusCounts)
+            {allTargetStatuses
               .filter(s => s !== activeStatusFilters[0])
-              .sort()
               .map(s => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}{statusCounts[s] != null ? ` (${statusCounts[s]})` : ''}
+                </option>
               ))}
           </select>
           <button

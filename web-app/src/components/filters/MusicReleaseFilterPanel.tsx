@@ -26,6 +26,8 @@ const DEFAULT_SORT_OPTIONS: SortOption[] = [
   { value: 'release_date', label: 'Date de sortie' },
 ];
 
+const ALL_STATUSES = ['PENDING', 'WAITING', 'DOWNLOADING', 'DOWNLOADED', 'EXTRACTING', 'FAILED', 'ERROR', 'SKIP'];
+
 /**
  * Panel de filtres pour les releases musicales
  * Utilise BaseFilterPanel avec les options de tri spécifiques
@@ -50,6 +52,7 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
       onFiltersChange={onFiltersChange as (filters: Record<string, unknown>) => void}
       onRefresh={onRefresh}
       onBulkStatusChange={onBulkStatusChange}
+      availableStatuses={ALL_STATUSES}
       loading={loading}
       totalCount={totalCount}
     />

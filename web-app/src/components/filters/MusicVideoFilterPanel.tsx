@@ -29,6 +29,8 @@ const DEFAULT_SORT_OPTIONS: SortOption[] = [
   { value: 'updated_at', label: 'Date modification' },
 ];
 
+const ALL_STATUSES = ['PENDING', 'WAITING', 'DOWNLOADING', 'DOWNLOADED', 'EXTRACTING', 'FAILED', 'ERROR', 'SKIP'];
+
 /**
  * Panel de filtres pour les vidéos musicales
  * Utilise BaseFilterPanel avec les options de tri spécifiques
@@ -43,6 +45,7 @@ export const MusicVideoFilterPanel: React.FC<MusicVideoFilterPanelProps> = (prop
       onFiltersChange={props.onFiltersChange as (filters: Record<string, unknown>) => void}
       onRefresh={props.onRefresh}
       onBulkStatusChange={props.onBulkStatusChange}
+      availableStatuses={ALL_STATUSES}
       loading={props.loading}
       totalCount={props.totalFilteredCount}
       className={props.className}

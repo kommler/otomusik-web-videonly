@@ -28,6 +28,8 @@ const DEFAULT_SORT_OPTIONS: SortOption[] = [
   { value: 'videos_count', label: 'Nombre de vidéos' },
 ];
 
+const ALL_STATUSES = ['WAITING', 'DOWNLOADING', 'DOWNLOADED', 'CURRENT', 'ANALYZED', 'FAILED'];
+
 /**
  * Panel de filtres pour les playlists vidéo
  * Utilise BaseFilterPanel avec les options de tri spécifiques
@@ -53,6 +55,7 @@ export const PlaylistFilterPanel: React.FC<PlaylistFilterPanelProps> = ({
       onFiltersChange={onFiltersChange as (filters: Record<string, unknown>) => void}
       onRefresh={onRefresh}
       onBulkStatusChange={onBulkStatusChange}
+      availableStatuses={ALL_STATUSES}
       loading={loading}
       totalCount={totalCount}
       className={className}
