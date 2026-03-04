@@ -7,6 +7,7 @@ import { BaseVideoPage, VideoFormFieldConfig, BaseVideoPageLabels, ChannelOption
 import { useVideoStore, useChannelStore, useUIStore } from '@/stores';
 import { VideoSchema, VideoQueryParams } from '@/types/api';
 import { useInitialLoad, useFilteredLoad } from '@/lib/hooks';
+import { apiCache } from '@/lib/api/cache';
 
 // ============================================================================
 // CONFIGURATION
@@ -154,6 +155,7 @@ export default function VideosPage() {
 
   // Refresh handler
   const handleRefresh = useCallback(() => {
+    apiCache.invalidate('/api/video/videos');
     fetchVideos(filters);
     fetchStatusCounts(filters);
   }, [fetchVideos, fetchStatusCounts, filters]);
@@ -174,18 +176,17 @@ export default function VideosPage() {
     }
   }, [updateVideo, addNotification]);
 
-  // Status double-click to set PENDING (API will auto-reset extraction fields if video_name is empty)
+  // Status double-click: set PENDING and reset extracted_at so the video goes back through extraction
   const handleStatusDoubleClick = useCallback(async (video: VideoSchema) => {
     if (!video.id) return;
 
-    // Use patchVideo to send only status - API will reset extraction fields if needed
-    const result = await patchVideo(video.id, { status: 'PENDING' });
+    const result = await patchVideo(video.id, { status: 'PENDING', extracted_at: null });
     
     if (result) {
       addNotification({
         type: 'success',
         title: 'Status Updated',
-        message: `Video "${video.title || video.video_name || video.id}" status changed to PENDING`,
+        message: `Video "${video.title || video.video_name || video.id}" reset to PENDING (extracted_at cleared)`,
       });
       fetchVideos(filters);
       fetchStatusCounts(filters);

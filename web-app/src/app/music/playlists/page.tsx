@@ -6,6 +6,7 @@ import { LazyMusicPlaylistFilterPanel } from '@/components/filters';
 import { BasePlaylistPage, FormFieldConfig, BasePlaylistPageLabels } from '@/components/pages';
 import { useMusicPlaylistStore, useUIStore } from '@/stores';
 import { PlaylistSchema, PlaylistQueryParams } from '@/types/api';
+import { apiCache } from '@/lib/api/cache';
 
 // ============================================================================
 // CONFIGURATION
@@ -125,6 +126,7 @@ export default function MusicPlaylistsPage() {
 
   // Refresh handler
   const handleRefresh = useCallback(() => {
+    apiCache.invalidate('/api/music/playlists');
     fetchPlaylists(filters);
     fetchStatusCounts(filters);
   }, [fetchPlaylists, fetchStatusCounts, filters]);

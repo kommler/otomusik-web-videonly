@@ -7,6 +7,7 @@ import { BaseChannelPage, FormFieldConfig, BaseChannelPageLabels } from '@/compo
 import { useMusicChannelStore } from '@/stores';
 import { MusicChannel, MusicChannelQueryParams } from '@/types/api';
 import { useInitialLoad } from '@/lib/hooks';
+import { apiCache } from '@/lib/api/cache';
 
 // ============================================================================
 // CONFIGURATION
@@ -108,6 +109,7 @@ export default function MusicChannelsPage() {
 
   // Handler for refresh
   const handleRefresh = useCallback(() => {
+    apiCache.invalidate('/api/music/channels');
     fetchChannels(filters);
   }, [fetchChannels, filters]);
 

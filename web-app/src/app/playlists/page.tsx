@@ -7,6 +7,7 @@ import { BasePlaylistPage, FormFieldConfig, BasePlaylistPageLabels } from '@/com
 import { usePlaylistStore, useUIStore } from '@/stores';
 import { PlaylistSchema, PlaylistQueryParams } from '@/types/api';
 import { useInitialLoad, useFilteredLoad } from '@/lib/hooks';
+import { apiCache } from '@/lib/api/cache';
 
 // ============================================================================
 // CONFIGURATION
@@ -144,6 +145,7 @@ export default function PlaylistsPage() {
 
   // Refresh handler
   const handleRefresh = useCallback(() => {
+    apiCache.invalidate('/api/video/playlists');
     fetchPlaylists();
     fetchStatusCounts();
   }, [fetchPlaylists, fetchStatusCounts]);

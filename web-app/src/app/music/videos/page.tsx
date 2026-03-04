@@ -7,6 +7,7 @@ import { BaseVideoPage, VideoFormFieldConfig, BaseVideoPageLabels, ChannelOption
 import { useMusicVideoStore, useMusicChannelStore, useUIStore } from '@/stores';
 import { MusicVideoSchema, MusicVideoQueryParams } from '@/types/api';
 import { useInitialLoad, useFilteredLoad } from '@/lib/hooks';
+import { apiCache } from '@/lib/api/cache';
 
 // ============================================================================
 // CONFIGURATION
@@ -138,6 +139,7 @@ export default function MusicVideosPage() {
 
   // Refresh handler
   const handleRefresh = useCallback(() => {
+    apiCache.invalidate('/api/music/videos');
     fetchVideos(filters);
     fetchStatusCounts(filters);
   }, [fetchVideos, fetchStatusCounts, filters]);

@@ -368,6 +368,12 @@ export function BaseVideoPage<TVideo, TFilters>({
       });
   };
 
+  // For edit: only require url (videos may have no title yet when pending extraction)
+  const isEditFormValid = () => {
+    const url = formData['url'];
+    return url !== undefined && url !== null && url !== '';
+  };
+
   // ============================================================================
   // RENDER
   // ============================================================================
@@ -543,7 +549,7 @@ export function BaseVideoPage<TVideo, TFilters>({
             <Button
               variant="primary"
               onClick={handleEdit}
-              disabled={formLoading || !isFormValid()}
+              disabled={formLoading || !isEditFormValid()}
             >
               {formLoading ? <LoadingSpinner size="sm" /> : labels.editSubmitButton}
             </Button>
