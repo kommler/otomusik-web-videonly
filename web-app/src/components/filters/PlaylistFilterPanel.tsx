@@ -11,6 +11,7 @@ interface PlaylistFilterPanelProps {
   sortOptions?: SortOption[];
   onFiltersChange: (filters: PlaylistQueryParams) => void;
   onRefresh?: () => void;
+  onBulkStatusChange?: (fromStatus: string, toStatus: string) => Promise<void>;
   loading?: boolean;
   totalCount?: number;
   className?: string;
@@ -38,6 +39,7 @@ export const PlaylistFilterPanel: React.FC<PlaylistFilterPanelProps> = ({
   sortOptions = DEFAULT_SORT_OPTIONS,
   onFiltersChange,
   onRefresh,
+  onBulkStatusChange,
   loading = false,
   totalCount = 0,
   className,
@@ -50,6 +52,7 @@ export const PlaylistFilterPanel: React.FC<PlaylistFilterPanelProps> = ({
       sortOptions={sortOptions}
       onFiltersChange={onFiltersChange as (filters: Record<string, unknown>) => void}
       onRefresh={onRefresh}
+      onBulkStatusChange={onBulkStatusChange}
       loading={loading}
       totalCount={totalCount}
       className={className}

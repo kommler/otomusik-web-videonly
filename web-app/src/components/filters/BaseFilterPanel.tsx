@@ -31,6 +31,8 @@ export interface BaseFilterPanelProps<Q extends Record<string, unknown>> {
   onFiltersChange: (filters: Q) => void;
   /** Callback pour rafraîchir les données */
   onRefresh?: () => void;
+  /** Callback pour changer le statut de tous les éléments filtrés */
+  onBulkStatusChange?: (fromStatus: string, toStatus: string) => Promise<void>;
   /** État de chargement */
   loading?: boolean;
   /** Nombre total d'éléments */
@@ -52,6 +54,7 @@ export function BaseFilterPanel<Q extends Record<string, unknown>>({
   sortOptions,
   onFiltersChange,
   onRefresh,
+  onBulkStatusChange,
   loading = false,
   totalCount = 0,
   className,
@@ -60,6 +63,8 @@ export function BaseFilterPanel<Q extends Record<string, unknown>>({
   const [localSearch, setLocalSearch] = useState(
     (filters as { search?: string }).search || ''
   );
+  const [targetStatus, setTargetStatus] = useState('');
+  const [isBulkChanging, setIsBulkChanging] = useState(false);
 
   // Debounce la valeur de recherche
   const debouncedSearch = useDebounce(localSearch, 300);
@@ -122,6 +127,23 @@ export function BaseFilterPanel<Q extends Record<string, unknown>>({
     const search = (filters as { search?: string }).search;
     return activeStatusFilters.length > 0 || (search && search.trim() !== '');
   }, [activeStatusFilters, filters]);
+
+  // Réinitialiser le statut cible quand la sélection change
+  useEffect(() => {
+    setTargetStatus('');
+  }, [activeStatusFilters.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Appliquer le changement de statut en masse
+  const handleBulkStatusChange = useCallback(async () => {
+    if (!onBulkStatusChange || !targetStatus || activeStatusFilters.length !== 1) return;
+    setIsBulkChanging(true);
+    try {
+      await onBulkStatusChange(activeStatusFilters[0], targetStatus);
+      setTargetStatus('');
+    } finally {
+      setIsBulkChanging(false);
+    }
+  }, [onBulkStatusChange, targetStatus, activeStatusFilters]);
 
   return (
     <div className={cn(
@@ -217,6 +239,36 @@ export function BaseFilterPanel<Q extends Record<string, unknown>>({
                 );
               })}
           </div>
+        </div>
+      )}
+
+      {/* Bulk status change — visible only when exactly one status is filtered */}
+      {onBulkStatusChange && activeStatusFilters.length === 1 && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700 rounded-md">
+          <span className="text-sm font-medium text-amber-800 dark:text-amber-300 whitespace-nowrap">
+            Changer les {statusCounts[activeStatusFilters[0]] ?? totalCount} <strong>{activeStatusFilters[0]}</strong> vers&nbsp;:
+          </span>
+          <select
+            value={targetStatus}
+            onChange={(e) => setTargetStatus(e.target.value)}
+            disabled={loading || isBulkChanging}
+            className="px-2 py-1 text-sm border border-amber-300 dark:border-amber-600 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 bg-white dark:bg-gray-700 dark:text-white disabled:opacity-50"
+          >
+            <option value="">— choisir —</option>
+            {Object.keys(statusCounts)
+              .filter(s => s !== activeStatusFilters[0])
+              .sort()
+              .map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+          </select>
+          <button
+            onClick={handleBulkStatusChange}
+            disabled={!targetStatus || loading || isBulkChanging}
+            className="px-3 py-1 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors"
+          >
+            {isBulkChanging ? 'En cours…' : 'Appliquer à tous'}
+          </button>
         </div>
       )}
 

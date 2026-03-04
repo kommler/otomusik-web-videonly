@@ -92,6 +92,7 @@ const formDataToPlaylist = (
 export default function MusicPlaylistsPage() {
   const {
     playlists,
+    allPlaylists,
     loading,
     filters,
     currentPage,
@@ -127,6 +128,19 @@ export default function MusicPlaylistsPage() {
     fetchPlaylists(filters);
     fetchStatusCounts(filters);
   }, [fetchPlaylists, fetchStatusCounts, filters]);
+
+  // Bulk status change
+  const handleBulkStatusChange = useCallback(async (fromStatus: string, toStatus: string) => {
+    const targets = allPlaylists.filter(p => p.status === fromStatus && p.id != null);
+    await Promise.all(targets.map(p => patchPlaylist(p.id!, { status: toStatus })));
+    fetchPlaylists(filters);
+    fetchStatusCounts(filters);
+    addNotification({
+      type: 'success',
+      title: 'Statuts mis à jour',
+      message: `${targets.length} playlist${targets.length > 1 ? 's' : ''} passée${targets.length > 1 ? 's' : ''} de ${fromStatus} à ${toStatus}.`,
+    });
+  }, [allPlaylists, patchPlaylist, fetchPlaylists, fetchStatusCounts, filters, addNotification]);
 
   // Status double-click to set WAITING
   const handleStatusDoubleClick = useCallback(async (playlist: PlaylistSchema) => {
@@ -239,6 +253,7 @@ export default function MusicPlaylistsPage() {
           loading={loading}
           totalCount={totalCount}
           onRefresh={handleRefresh}
+          onBulkStatusChange={handleBulkStatusChange}
         />
       )}
       renderTable={(props) => (

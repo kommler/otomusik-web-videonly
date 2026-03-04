@@ -10,6 +10,7 @@ interface MusicPlaylistFilterPanelProps {
   statusCounts: Record<string, number>;
   onFiltersChange: (filters: PlaylistQueryParams) => void;
   onRefresh?: () => void;
+  onBulkStatusChange?: (fromStatus: string, toStatus: string) => Promise<void>;
   loading?: boolean;
   totalCount?: number;
 }
@@ -35,6 +36,7 @@ export const MusicPlaylistFilterPanel: React.FC<MusicPlaylistFilterPanelProps> =
   statusCounts,
   onFiltersChange,
   onRefresh,
+  onBulkStatusChange,
   loading = false,
   totalCount = 0,
 }) => {
@@ -46,6 +48,7 @@ export const MusicPlaylistFilterPanel: React.FC<MusicPlaylistFilterPanelProps> =
       sortOptions={SORT_OPTIONS}
       onFiltersChange={onFiltersChange as (filters: Record<string, unknown>) => void}
       onRefresh={onRefresh}
+      onBulkStatusChange={onBulkStatusChange}
       loading={loading}
       totalCount={totalCount}
     />

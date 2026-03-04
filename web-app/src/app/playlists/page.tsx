@@ -102,6 +102,7 @@ const formDataToPlaylist = (
 export default function PlaylistsPage() {
   const {
     playlists,
+    allPlaylists,
     selectedPlaylist,
     totalCount,
     statusCounts,
@@ -117,6 +118,7 @@ export default function PlaylistsPage() {
     fetchStatusCounts,
     createPlaylist,
     updatePlaylist,
+    patchPlaylist,
     deletePlaylist,
     clearError,
   } = usePlaylistStore();
@@ -145,6 +147,19 @@ export default function PlaylistsPage() {
     fetchPlaylists();
     fetchStatusCounts();
   }, [fetchPlaylists, fetchStatusCounts]);
+
+  // Bulk status change
+  const handleBulkStatusChange = useCallback(async (fromStatus: string, toStatus: string) => {
+    const targets = allPlaylists.filter(p => p.status === fromStatus && p.id != null);
+    await Promise.all(targets.map(p => patchPlaylist(p.id!, { status: toStatus })));
+    fetchPlaylists();
+    fetchStatusCounts();
+    addNotification({
+      type: 'success',
+      title: 'Statuts mis à jour',
+      message: `${targets.length} playlist${targets.length > 1 ? 's' : ''} passée${targets.length > 1 ? 's' : ''} de ${fromStatus} à ${toStatus}.`,
+    });
+  }, [allPlaylists, patchPlaylist, fetchPlaylists, fetchStatusCounts, addNotification]);
 
   // View handler
   const handleView = useCallback((playlist: PlaylistSchema) => {
@@ -272,6 +287,7 @@ export default function PlaylistsPage() {
           sortOptions={sortOptions}
           onFiltersChange={handleFiltersChange}
           onRefresh={handleRefresh}
+          onBulkStatusChange={handleBulkStatusChange}
           loading={loading}
           totalCount={totalCount}
         />

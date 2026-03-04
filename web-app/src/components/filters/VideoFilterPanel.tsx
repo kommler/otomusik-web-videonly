@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { VideoQueryParams } from '@/types/api';
 import { useVideoStore } from '@/stores';
 import { BaseFilterPanel, SortOption } from './BaseFilterPanel';
@@ -20,7 +20,7 @@ interface VideoFilterPanelProps {
 }
 
 export function VideoFilterPanel({ className, onRefresh }: VideoFilterPanelProps) {
-  const { filters, statusCounts, totalCount, loading, setFilters, fetchVideos, fetchStatusCounts } = useVideoStore();
+  const { filters, statusCounts, totalCount, loading, setFilters, fetchVideos, fetchStatusCounts, allVideos, patchVideo } = useVideoStore();
 
   const handleFiltersChange = (newFilters: Record<string, unknown>) => {
     setFilters(newFilters as VideoQueryParams);
@@ -36,6 +36,14 @@ export function VideoFilterPanel({ className, onRefresh }: VideoFilterPanelProps
     }
   };
 
+  // Bulk status change: patch all items matching fromStatus
+  const handleBulkStatusChange = useCallback(async (fromStatus: string, toStatus: string) => {
+    const targets = allVideos.filter(v => v.status === fromStatus && v.id != null);
+    await Promise.all(targets.map(v => patchVideo(v.id!, { status: toStatus })));
+    fetchVideos(filters);
+    fetchStatusCounts(filters);
+  }, [allVideos, patchVideo, fetchVideos, fetchStatusCounts, filters]);
+
   return (
     <BaseFilterPanel
       entityType="Vidéos"
@@ -44,6 +52,7 @@ export function VideoFilterPanel({ className, onRefresh }: VideoFilterPanelProps
       sortOptions={VIDEO_SORT_OPTIONS}
       onFiltersChange={handleFiltersChange}
       onRefresh={handleRefresh}
+      onBulkStatusChange={handleBulkStatusChange}
       loading={loading}
       totalCount={totalCount}
       className={className}

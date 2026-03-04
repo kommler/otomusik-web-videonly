@@ -11,6 +11,7 @@ interface MusicReleaseFilterPanelProps {
   sortOptions?: SortOption[];
   onFiltersChange: (filters: MusicReleaseQueryParams) => void;
   onRefresh?: () => void;
+  onBulkStatusChange?: (fromStatus: string, toStatus: string) => Promise<void>;
   loading?: boolean;
   totalCount?: number;
 }
@@ -36,6 +37,7 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
   sortOptions = DEFAULT_SORT_OPTIONS,
   onFiltersChange,
   onRefresh,
+  onBulkStatusChange,
   loading = false,
   totalCount = 0,
 }) => {
@@ -47,6 +49,7 @@ export const MusicReleaseFilterPanel: React.FC<MusicReleaseFilterPanelProps> = (
       sortOptions={sortOptions}
       onFiltersChange={onFiltersChange as (filters: Record<string, unknown>) => void}
       onRefresh={onRefresh}
+      onBulkStatusChange={onBulkStatusChange}
       loading={loading}
       totalCount={totalCount}
     />

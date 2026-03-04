@@ -93,6 +93,7 @@ const formDataToVideo = (
 export default function MusicVideosPage() {
   const {
     videos,
+    allVideos,
     loading,
     filters,
     currentPage,
@@ -105,6 +106,7 @@ export default function MusicVideosPage() {
     setPageSize,
     fetchStatusCounts,
     updateVideo,
+    patchVideo,
     deleteVideo,
     createVideo
   } = useMusicVideoStore();
@@ -139,6 +141,19 @@ export default function MusicVideosPage() {
     fetchVideos(filters);
     fetchStatusCounts(filters);
   }, [fetchVideos, fetchStatusCounts, filters]);
+
+  // Bulk status change
+  const handleBulkStatusChange = useCallback(async (fromStatus: string, toStatus: string) => {
+    const targets = allVideos.filter(v => v.status === fromStatus && v.id != null);
+    await Promise.all(targets.map(v => patchVideo(v.id!, { status: toStatus })));
+    fetchVideos(filters);
+    fetchStatusCounts(filters);
+    addNotification({
+      type: 'success',
+      title: 'Status updated',
+      message: `${targets.length} video${targets.length > 1 ? 's' : ''} changed from ${fromStatus} to ${toStatus}.`,
+    });
+  }, [allVideos, patchVideo, fetchVideos, fetchStatusCounts, filters, addNotification]);
 
   // Clear filters handler
   const handleClearFilters = useCallback(() => {
@@ -266,6 +281,7 @@ export default function MusicVideosPage() {
           statusCounts={statusCounts}
           totalFilteredCount={totalCount}
           onRefresh={handleRefresh}
+          onBulkStatusChange={handleBulkStatusChange}
           loading={loading}
         />
       )}

@@ -13,6 +13,7 @@ interface MusicVideoFilterPanelProps {
   statusCounts?: Record<string, number>;
   totalFilteredCount?: number;
   onRefresh?: () => void;
+  onBulkStatusChange?: (fromStatus: string, toStatus: string) => Promise<void>;
   loading?: boolean;
 }
 
@@ -41,6 +42,7 @@ export const MusicVideoFilterPanel: React.FC<MusicVideoFilterPanelProps> = (prop
       sortOptions={DEFAULT_SORT_OPTIONS}
       onFiltersChange={props.onFiltersChange as (filters: Record<string, unknown>) => void}
       onRefresh={props.onRefresh}
+      onBulkStatusChange={props.onBulkStatusChange}
       loading={props.loading}
       totalCount={props.totalFilteredCount}
       className={props.className}

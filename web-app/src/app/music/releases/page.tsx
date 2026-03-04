@@ -92,6 +92,7 @@ const formDataToRelease = (
 export default function MusicReleasesPage() {
   const {
     releases,
+    allReleases,
     loading,
     filters,
     currentPage,
@@ -104,6 +105,7 @@ export default function MusicReleasesPage() {
     setPageSize,
     fetchStatusCounts,
     updateRelease,
+    patchRelease,
     deleteRelease,
     createRelease,
   } = useMusicReleaseStore();
@@ -139,6 +141,19 @@ export default function MusicReleasesPage() {
     fetchReleases(filters);
     fetchStatusCounts(filters);
   }, [fetchReleases, fetchStatusCounts, filters]);
+
+  // Bulk status change: patch all visible items matching fromStatus
+  const handleBulkStatusChange = useCallback(async (fromStatus: string, toStatus: string) => {
+    const targets = allReleases.filter(r => r.status === fromStatus && r.id != null);
+    await Promise.all(targets.map(r => patchRelease(r.id!, { status: toStatus })));
+    fetchReleases(filters);
+    fetchStatusCounts(filters);
+    addNotification({
+      type: 'success',
+      title: 'Statuts mis à jour',
+      message: `${targets.length} release${targets.length > 1 ? 's' : ''} passée${targets.length > 1 ? 's' : ''} de ${fromStatus} à ${toStatus}.`,
+    });
+  }, [allReleases, patchRelease, fetchReleases, fetchStatusCounts, filters, addNotification]);
 
   // Status double-click handler (FAILED -> PENDING, DOWNLOADED -> WAITING, WAITING -> DOWNLOADED)
   const handleStatusDoubleClick = useCallback(async (release: ReleaseSchema) => {
@@ -268,6 +283,7 @@ export default function MusicReleasesPage() {
           loading={loading}
           totalCount={totalCount}
           onRefresh={handleRefresh}
+          onBulkStatusChange={handleBulkStatusChange}
         />
       )}
       renderTable={(props) => (
