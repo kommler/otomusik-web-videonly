@@ -41,7 +41,12 @@ export function VideoFilterPanel({ className, onRefresh }: VideoFilterPanelProps
   // Bulk status change: patch all items matching fromStatus
   const handleBulkStatusChange = useCallback(async (fromStatus: string, toStatus: string) => {
     const targets = allVideos.filter(v => v.status === fromStatus && v.id != null);
-    await Promise.all(targets.map(v => patchVideo(v.id!, { status: toStatus })));
+    await Promise.all(targets.map(v => patchVideo(
+      v.id!,
+      toStatus === 'PENDING'
+        ? { status: toStatus, extracted_at: null }
+        : { status: toStatus }
+    )));
     fetchVideos(filters);
     fetchStatusCounts(filters);
   }, [allVideos, patchVideo, fetchVideos, fetchStatusCounts, filters]);
