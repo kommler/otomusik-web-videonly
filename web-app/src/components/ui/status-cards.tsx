@@ -40,25 +40,40 @@ function StatusCard({
   isActive?: boolean;
   onClick?: () => void;
 }) {
-  const colorClasses: Record<string, string> = {
-    gray: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
-    blue: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    green: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    yellow: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    red: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    purple: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    indigo: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-    orange: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+  const inactiveClasses: Record<string, string> = {
+    gray: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+    blue: 'bg-blue-50 text-blue-400 dark:bg-blue-950 dark:text-blue-400',
+    green: 'bg-green-50 text-green-400 dark:bg-green-950 dark:text-green-400',
+    yellow: 'bg-yellow-50 text-yellow-400 dark:bg-yellow-950 dark:text-yellow-400',
+    red: 'bg-red-50 text-red-400 dark:bg-red-950 dark:text-red-400',
+    purple: 'bg-purple-50 text-purple-400 dark:bg-purple-950 dark:text-purple-400',
+    indigo: 'bg-indigo-50 text-indigo-400 dark:bg-indigo-950 dark:text-indigo-400',
+    orange: 'bg-orange-50 text-orange-400 dark:bg-orange-950 dark:text-orange-400',
   };
+
+  const activeClasses: Record<string, string> = {
+    gray: 'bg-gray-600 text-white dark:bg-gray-300 dark:text-gray-900 shadow-lg scale-105',
+    blue: 'bg-blue-600 text-white dark:bg-blue-400 dark:text-blue-950 shadow-lg scale-105',
+    green: 'bg-green-600 text-white dark:bg-green-400 dark:text-green-950 shadow-lg scale-105',
+    yellow: 'bg-yellow-500 text-white dark:bg-yellow-400 dark:text-yellow-950 shadow-lg scale-105',
+    red: 'bg-red-600 text-white dark:bg-red-400 dark:text-red-950 shadow-lg scale-105',
+    purple: 'bg-purple-600 text-white dark:bg-purple-400 dark:text-purple-950 shadow-lg scale-105',
+    indigo: 'bg-indigo-600 text-white dark:bg-indigo-400 dark:text-indigo-950 shadow-lg scale-105',
+    orange: 'bg-orange-500 text-white dark:bg-orange-400 dark:text-orange-950 shadow-lg scale-105',
+  };
+
+  const colorKey = color && (inactiveClasses[color] ? color : 'gray');
+  const stateClasses = isActive
+    ? (activeClasses[colorKey] || activeClasses.gray)
+    : (inactiveClasses[colorKey] || inactiveClasses.gray);
 
   return (
     <button
       onClick={onClick}
       className={`
-        flex items-center justify-between p-4 rounded-lg transition-all
-        ${colorClasses[color] || colorClasses.gray}
-        ${isActive ? 'ring-2 ring-offset-2 ring-blue-500' : ''}
-        ${onClick ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}
+        flex items-center justify-between p-4 rounded-lg transition-all duration-200
+        ${stateClasses}
+        ${onClick ? 'cursor-pointer hover:brightness-110' : 'cursor-default'}
       `}
     >
       <div className="flex items-center space-x-3">
